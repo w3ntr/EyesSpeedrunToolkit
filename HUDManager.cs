@@ -18,6 +18,7 @@ namespace EyesSpeedrunToolkit
         private static bool _isDraggingTimer = false;
         private static Vector2 _dragOffset;
         private static Rect _timerRect;
+        private static bool _isRebinding = false; // <-- Добавь эту строку
 
         private static Color _warningColor = new Color(1f, 0.3f, 0.3f, 1f);
 
@@ -64,10 +65,38 @@ namespace EyesSpeedrunToolkit
 
         public static void OnGUI()
         {
+            // Управление курсором
             if (_menuOpen)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
+            }
+
+            // === ОБРАБОТКА ПЕРЕНАЗНАЧЕНИЯ КЛАВИШ ===
+            if (_isRebinding)
+            {
+                Event e = Event.current;
+                // Проверяем, была ли нажата клавиша
+                if (e.type == EventType.KeyDown)
+                {
+                    if (e.keyCode == KeyCode.Escape)
+                    {
+                        // Отмена
+                        _isRebinding = false;
+                        MelonLogger.Msg("HUDManager: Rebinding cancelled.");
+                    }
+                    else if (e.keyCode != KeyCode.None)
+                    {
+                        // Сохраняем новую клавишу
+                        ConfigManager.MenuKey = e.keyCode;
+                        ConfigManager.Save();
+                        _isRebinding = false;
+                        MelonLogger.Msg($"HUDManager: Menu key rebound to {ConfigManager.MenuKey}");
+                    }
+
+                    // Обязательно "съедаем" событие, чтобы нажатая клавиша не открыла/закрыла меню в ту же секунду
+                    e.Use();
+                }
             }
 
             if (ConfigManager.TimerEnabled)
@@ -308,14 +337,38 @@ namespace EyesSpeedrunToolkit
 
         private static void DrawSettingsTab()
         {
-            GUILayout.Label("Menu Keybind: " + ConfigManager.MenuKey.ToString());
+            GUILayout.Label("Menu Settings", GUILayout.Height(20));
             GUILayout.Space(10);
 
-            if (GUILayout.Button("Reset to Defaults"))
+            GUILayout.Label("Current Menu Key: " + ConfigManager.MenuKey.ToString(), GUILayout.Height(20));
+            GUILayout.Space(10);
+
+            if (_isRebinding)
+            {
+                // Если мы в режиме ожидания
+                Color originalColor = GUI.color;
+                GUI.color = Color.yellow;
+                GUILayout.Label(">>> Press any key to bind... (Esc to cancel) <<<", GUILayout.Height(25));
+                GUI.color = originalColor;
+            }
+            else
+            {
+                // Кнопка для начала переназначения
+                if (GUILayout.Button("Change Menu Key", GUILayout.Height(30)))
+                {
+                    _isRebinding = true;
+                }
+            }
+
+            GUILayout.Space(30);
+            GUILayout.Label("Data Management", GUILayout.Height(20));
+            GUILayout.Space(5);
+
+            if (GUILayout.Button("Reset to Defaults", GUILayout.Height(30)))
             {
                 ConfigManager.ResetToDefaults();
                 GraphicsModule.Reset();
-                MelonLogger.Msg("HUDManager: Settings reset");
+                MelonLogger.Msg("HUDManager: Settings reset to defaults");
             }
         }
     }

@@ -2,8 +2,8 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.0.0", "w3ntr")]
-[assembly: MelonGame("Fearless Games", "Eyes The Horror Game")]
+[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.0.1", "w3ntr")]
+[assembly: MelonGame("", "Eyes")]
 
 namespace EyesSpeedrunToolkit
 {
@@ -13,7 +13,7 @@ namespace EyesSpeedrunToolkit
 
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.0.0 Loaded ===");
+            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.0.1 Loaded ===");
 
             ConfigManager.Load();
 
