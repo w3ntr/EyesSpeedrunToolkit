@@ -156,13 +156,19 @@ The default configuration is as follows:
 | Parameter | Default Value | Description |
 | :--- | :--- | :--- |
 | `MenuKey` | `F1` | Hotkey for opening the menu (hardcoded) |
+| `Freecam` | `F3` | Hotkey for Free Camera (fly) |
 | `DisablePostProcessing` | `false` | Removes vignette, bloom, color grading |
 | `DisableVSync` | `false` | Enables V-Sync with monitor refresh rate |
 | `CustomFPS` | `0` | `0` = unlimited, `>0` = custom frame rate cap |
 | `TargetFOV` | `60` | Camera field of view in degrees |
 | `TimerEnabled` | `true` | Displays the speedrun timer |
-| `MonsterTrackerEnabled` | `false` | Displays monster distance overlay |
+| `MonsterTrackerEnabled` | `false` | Displays monster distance overlay, and where he is |
+| `Infinite Stamina` | `false` | Infinite stamina! |
+| `Stamina Regen Timer` | `false` | Displays regeneration of the stamina, and after how long will the bar be 100% |
 | `FarClipPlane` | `0.01` | Normalized value (`0.01` = 11m, `1.00` = 1000m) |
+| `HarmonyClickBlock` | `Left Click Mouse` | Doesn't click on the game when you're in pause |
+| `Bags Wallhack` | `false` | Shows bags 2D ESP |
+| `2DBox` | `false` | Displays ESP of Monster. Shows where is he (Same with 3D WallHack |
 | `TimerX`, `TimerY` | `10`, `10` | Timer position in pixels from top-left |
 
 ## Building from Source
