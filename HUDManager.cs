@@ -38,16 +38,59 @@ namespace EyesSpeedrunToolkit
 
         public static void Update()
         {
+            // === ОБРАБОТКА РЕБИНДА КЛАВИШ ===
+            if (_isRebinding)
+            {
+                // Проверяем все клавиши
+                foreach (KeyCode kcode in System.Enum.GetValues(typeof(KeyCode)))
+                {
+                    if (Input.GetKeyDown(kcode))
+                    {
+                        // Esc для отмены
+                        if (kcode == KeyCode.Escape)
+                        {
+                            _isRebinding = false;
+                            MelonLogger.Msg("HUDManager: Key rebinding cancelled");
+                            return;
+                        }
+
+                        // Игнорируем служебные клавиши
+                        if (kcode == KeyCode.None || kcode == KeyCode.Escape ||
+                            kcode == KeyCode.LeftShift || kcode == KeyCode.RightShift ||
+                            kcode == KeyCode.LeftControl || kcode == KeyCode.RightControl ||
+                            kcode == KeyCode.LeftAlt || kcode == KeyCode.RightAlt)
+                        {
+                            return;
+                        }
+
+                        // Применяем новую клавишу
+                        ConfigManager.MenuKey = kcode;
+                        ConfigManager.Save();
+                        _isRebinding = false;
+                        MelonLogger.Msg($"HUDManager: Menu key changed to {kcode}");
+                        return;
+                    }
+                }
+                // Если в режиме ребинда — дальше не идём
+                return;
+            }
+            // ================================
+
+            // Открываем/закрываем меню (только если НЕ в режиме ребинда)
             if (Input.GetKeyDown(ConfigManager.MenuKey))
             {
                 _menuOpen = !_menuOpen;
                 MelonLogger.Msg("HUDManager: Menu " + (_menuOpen ? "opened" : "closed"));
             }
+
+            // Применяем настройки (КАЖДЫЙ КАДР!)
             CheckAndApplySettings();
         }
 
+
         private static void CheckAndApplySettings()
         {
+
             bool settingsChanged = false;
             if (_lastDisablePP != ConfigManager.DisablePostProcessing) { _lastDisablePP = ConfigManager.DisablePostProcessing; settingsChanged = true; }
             if (_lastDisableVSync != ConfigManager.DisableVSync) { _lastDisableVSync = ConfigManager.DisableVSync; settingsChanged = true; }
@@ -302,6 +345,17 @@ namespace EyesSpeedrunToolkit
                 ConfigManager.Save();
             }
             GUILayout.Label("(Stamina never drains)", GUILayout.Height(20));
+
+            GUILayout.Space(10);
+            bool newFreecam = GUILayout.Toggle(ConfigManager.FreecamEnabled, "FreeCam (Detach camera - F3)");
+            if (newFreecam != ConfigManager.FreecamEnabled)
+            {
+                ConfigManager.FreecamEnabled = newFreecam;
+                ConfigManager.Save();
+                if (ConfigManager.FreecamEnabled) FreecamModule.IsEnabled = true;
+                else FreecamModule.IsEnabled = false;
+            }
+            GUILayout.Label("(WASD to fly, Mouse to look, Shift for speed boost)", GUILayout.Height(20));
 
             GUILayout.EndScrollView();
 

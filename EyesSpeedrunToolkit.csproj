@@ -111,6 +111,7 @@
   <ItemGroup>
     <Compile Include="BagsWallHack.cs" />
     <Compile Include="BlockClickPatch.cs" />
+    <Compile Include="FreecamModule.cs" />
     <Compile Include="PlayerModifiers.cs" />
     <Compile Include="WindowManager.cs" />
     <Compile Include="SpeedrunTimer.cs" />

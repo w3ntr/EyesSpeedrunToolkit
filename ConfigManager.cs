@@ -22,6 +22,7 @@ namespace EyesSpeedrunToolkit
         public static bool ESPEnabled = false;
         public static bool MonsterTrackerEnabled = false;
         public static bool ESP2DBoxEnabled = false;
+        public static bool FreecamEnabled = false;
 
         // Practice
         public static bool BagsWallHackEnabled = false;
@@ -54,13 +55,13 @@ namespace EyesSpeedrunToolkit
                 MonsterTrackerEnabled = PlayerPrefs.GetInt(PREFIX + "MonsterTracker", 0) == 1;
                 ESPEnabled = PlayerPrefs.GetInt(PREFIX + "ESP", 0) == 1;
                 ESP2DBoxEnabled = PlayerPrefs.GetInt(PREFIX + "ESP2DBox", 0) == 1;
+                FreecamEnabled = PlayerPrefs.GetInt(PREFIX + "Freecam", 0) == 1;
                 DisableFalloffShader = PlayerPrefs.GetInt(PREFIX + "DisableFalloff", 0) == 1;
                 TimerX = PlayerPrefs.GetFloat(PREFIX + "TimerX", 10f);
                 TimerY = PlayerPrefs.GetFloat(PREFIX + "TimerY", 10f);
                 FarClipPlane = PlayerPrefs.GetFloat(PREFIX + "FarClip", 0.01f);
                 RenderDistance = PlayerPrefs.GetFloat(PREFIX + "RenderDistance", 11f);
-                int keyInt = PlayerPrefs.GetInt(PREFIX + "MenuKey", (int)KeyCode.F1);
-                MenuKey = (KeyCode)keyInt;
+                MenuKey = (KeyCode)PlayerPrefs.GetInt(PREFIX + "MenuKey", (int)KeyCode.F1);
                 _loaded = true;
                 MelonLogger.Msg($"ConfigManager: Settings loaded. Menu key: {MenuKey}");
             }
@@ -85,6 +86,7 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetInt(PREFIX + "MonsterTracker", MonsterTrackerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP", ESPEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP2DBox", ESP2DBoxEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "Freecam", FreecamEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "DisableFalloff", DisableFalloffShader ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "BagsWallHack", BagsWallHackEnabled ? 1 : 0);
                 PlayerPrefs.SetFloat(PREFIX + "TimerX", TimerX);
@@ -110,6 +112,7 @@ namespace EyesSpeedrunToolkit
             MonsterTrackerEnabled = false;
             ESPEnabled = false;
             ESP2DBoxEnabled = false;
+            FreecamEnabled = false;
             DisableFalloffShader = false;
             BagsWallHackEnabled = false;
             TimerX = 10f;
