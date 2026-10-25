@@ -175,4 +175,17 @@ The default configuration is as follows:
 
 The project is **fully open-source**, and the author welcomes anyone to use, modify, or distribute the code in whatever way they see fit. Contributions are accepted through the standard GitHub workflow. Bug reports, feature requests, and pull requests should be submitted through the repository's issue tracker. When submitting a pull request, please ensure that the code compiles against the current MelonLoader release and that any new features include appropriate configuration persistence.
 
+## Acknowledgements
+
+This project wouldn't be possible without the help and feedback from the community:
+
+* **Matrix** — Bug hunter and tester. Thanks for finding and reporting critical issues like portal visibility, particle system conflicts, and shader replacement bugs. Your detailed feedback helped make the mod more stable and reliable.
+* **T300830** — Creator of the original Assembly-CSharp modification for Eyes. His work inspired some features of this toolkit, and his feedback on MelonLoader compatibility helped shape the project's direction.
+* **Speedrun.com Eyes Community** — For providing feedback, feature requests, and testing early versions of the mod.
+
+If you find any bugs or have suggestions, feel free to open an issue on GitHub! 
+_You can also reach out to me via private message — whichever way is most convenient for you:_
+* Discord: w3ntr
+* Telegram: @w3ntr
+
 [↑ Back to top](#table-of-contents)
