@@ -23,6 +23,9 @@ namespace EyesSpeedrunToolkit
         public static bool MonsterTrackerEnabled = false;
         public static bool ESP2DBoxEnabled = false;
 
+        // Practice
+        public static bool BagsWallHackEnabled = false;
+
         // Меню
         public static KeyCode MenuKey = KeyCode.F1;
 
@@ -73,6 +76,7 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetInt(PREFIX + "ESP", ESPEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP2DBox", ESP2DBoxEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "DisableFalloff", DisableFalloffShader ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "BagsWallHack", BagsWallHackEnabled ? 1 : 0);
                 PlayerPrefs.SetFloat(PREFIX + "TimerX", TimerX);
                 PlayerPrefs.SetFloat(PREFIX + "TimerY", TimerY);
                 PlayerPrefs.SetFloat(PREFIX + "FarClip", FarClipPlane);
@@ -97,6 +101,7 @@ namespace EyesSpeedrunToolkit
             ESPEnabled = false;
             ESP2DBoxEnabled = false;
             DisableFalloffShader = false;
+            BagsWallHackEnabled = false;
             TimerX = 10f;
             TimerY = 10f;
             FarClipPlane = 0.01f;

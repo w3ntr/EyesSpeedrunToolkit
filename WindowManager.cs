@@ -32,7 +32,7 @@ namespace EyesSpeedrunToolkit
             WindowRect.width = Mathf.Max(MinWindowWidth, WindowRect.width);
             WindowRect.height = Mathf.Max(MinWindowHeight, WindowRect.height);
 
-            WindowRect = GUI.Window(0, WindowRect, (id) => WindowCallback(id, windowContent), title);
+            WindowRect = GUI.ModalWindow(0, WindowRect, (id) => WindowCallback(id, windowContent), title);
         }
 
         private static void WindowCallback(int id, Action<int> contentAction)

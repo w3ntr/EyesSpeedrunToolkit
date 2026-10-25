@@ -22,6 +22,7 @@ namespace EyesSpeedrunToolkit
         private static Vector2 _cheatsScrollPosition;
 
         private static Color _warningColor = new Color(1f, 0.3f, 0.3f, 1f);
+        public static bool IsMenuOpen => _menuOpen;
 
         public static void Initialize()
         {
@@ -114,10 +115,21 @@ namespace EyesSpeedrunToolkit
                 if (monsterPos != Vector3.zero) DrawMonsterESP(monsterPos);
             }
 
-            // МЕНЮ
+            // МЕНЮ (делегировано WindowManager)
             if (_menuOpen)
             {
                 WindowManager.Draw("Eyes Speedrun Toolkit", DrawWindowContent);
+
+                // БЛОКИРОВКА КЛИКОВ СКВОЗЬ МЕНЮ
+                if (WindowManager.WindowRect.Contains(Event.current.mousePosition))
+                {
+                    if (Event.current.type == EventType.MouseDown ||
+                        Event.current.type == EventType.MouseUp ||
+                        Event.current.type == EventType.MouseDrag)
+                    {
+                        Event.current.Use();
+                    }
+                }
             }
 
             // 2D ESP BOX
@@ -139,6 +151,8 @@ namespace EyesSpeedrunToolkit
 
                         GUI.color = Color.white;
                     }
+                    // BAGS WALLHACK INDICATORS
+                    BagsWallHack.DrawBagIndicators();
                 }
             }
         }
@@ -146,19 +160,20 @@ namespace EyesSpeedrunToolkit
         private static void DrawWindowContent(int windowID)
         {
             GUILayout.BeginHorizontal();
-            _selectedTab = GUILayout.SelectionGrid(_selectedTab, new string[] { "QoL", "Cheats", "Settings" }, 3, GUILayout.Height(30));
+            // Теперь 4 вкладки: QoL (0), Practice (1), Cheats (2), Settings (3)
+            _selectedTab = GUILayout.SelectionGrid(_selectedTab, new string[] { "QoL", "Practice", "Cheats", "Settings" }, 4, GUILayout.Height(30));
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
 
             switch (_selectedTab)
             {
                 case 0: DrawQoLTab(); break;
-                case 1: DrawCheatsTab(); break;
-                case 2: DrawSettingsTab(); break;
+                case 1: DrawPracticeTab(); break; // <-- НОВОЕ
+                case 2: DrawCheatsTab(); break;
+                case 3: DrawSettingsTab(); break;
             }
 
-            // Крестик закрытия (сдвинут, чтобы не наезжать на вкладки даже при узком окне)
-            if (GUI.Button(new Rect(WindowManager.WindowRect.width - 25, 5, 20, 20), "X"))
+            if (GUI.Button(new Rect(WindowManager.WindowRect.width - 30, 5, 25, 20), "X"))
             {
                 _menuOpen = false;
             }
@@ -181,7 +196,7 @@ namespace EyesSpeedrunToolkit
                 string fpsLabel = ConfigManager.CustomFPS > 0 ? $"FPS Limit: {ConfigManager.CustomFPS}" : "FPS Limit: Unlimited";
                 GUILayout.Label(fpsLabel, GUILayout.Height(20));
 
-                float newFpsFloat = GUILayout.HorizontalSlider(ConfigManager.CustomFPS, 0f, 300f);
+                float newFpsFloat = GUILayout.HorizontalSlider(ConfigManager.CustomFPS, 0f, 720f);
                 int newFps = Mathf.RoundToInt(newFpsFloat);
                 if (newFps != ConfigManager.CustomFPS)
                 {
@@ -197,13 +212,44 @@ namespace EyesSpeedrunToolkit
 
             GUILayout.Space(10);
             GUILayout.Label("FOV: " + ConfigManager.TargetFOV.ToString("F0"));
-            float newFov = GUILayout.HorizontalSlider(ConfigManager.TargetFOV, 60f, 120f);
+            float newFov = GUILayout.HorizontalSlider(ConfigManager.TargetFOV, 60f, 140f);
             if (Mathf.Abs(newFov - ConfigManager.TargetFOV) > 0.1f)
             {
                 ConfigManager.TargetFOV = newFov;
                 ConfigManager.Save();
                 GraphicsModule.Reset();
             }
+        }
+
+        private static void DrawPracticeTab()
+        {
+            Color originalColor = GUI.color;
+            GUI.color = _warningColor;
+            GUILayout.Label("⚠️ PRACTICE ONLY - BANNED ON SPEEDRUN.COM! ⚠️", GUILayout.Height(25));
+            GUILayout.Label("These features are for route learning and practice.", GUILayout.Height(20));
+            GUILayout.Label("Using them invalidates any run for leaderboard submission.", GUILayout.Height(20));
+            GUI.color = originalColor;
+            GUILayout.Space(15);
+
+            bool newBagsWH = GUILayout.Toggle(ConfigManager.BagsWallHackEnabled, "Bags Wallhack (See sacks through walls)");
+            if (newBagsWH != ConfigManager.BagsWallHackEnabled)
+            {
+                ConfigManager.BagsWallHackEnabled = newBagsWH;
+                ConfigManager.Save();
+
+                if (ConfigManager.BagsWallHackEnabled)
+                {
+                    BagsWallHack.Enable();
+                }
+                else
+                {
+                    BagsWallHack.Disable();
+                }
+            }
+            GUILayout.Label("(Highlights all sacks in green through walls)", GUILayout.Height(20));
+
+            GUILayout.Space(20);
+            GUILayout.Label("More practice tools coming soon...", GUILayout.Height(20));
         }
 
         private static void DrawCheatsTab()

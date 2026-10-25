@@ -52,12 +52,17 @@ namespace EyesSpeedrunToolkit
             string currentScene = SceneManager.GetActiveScene().name;
             bool isGameScene = currentScene == "School" || currentScene == "Hospital" || currentScene == "Mansion";
 
-            if (!isGameScene) return;
-
-            if (_mainCamera != null)
+            // === ЖЁСТКИЙ ФИКС СБРОСА FOV ===
+            // Применяем FOV каждый кадр, чтобы игра (например, при спринте или загрузке) не могла его переписать
+            Camera activeCam = Camera.main ?? _mainCamera;
+            if (activeCam != null && isGameScene)
             {
-                _mainCamera.fieldOfView = ConfigManager.TargetFOV;
+                activeCam.fieldOfView = ConfigManager.TargetFOV;
+                _mainCamera = activeCam; // Обновляем ссылку на всякий случай
             }
+            // ==============================
+
+            if (!isGameScene) return;
 
             if (!_initialized)
             {

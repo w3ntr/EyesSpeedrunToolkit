@@ -49,6 +49,10 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=2.10.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Eyes - The Horror Game\MelonLoader\net472\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Eyes - The Horror Game\Eyes_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
@@ -105,6 +109,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BagsWallHack.cs" />
+    <Compile Include="BlockClickPatch.cs" />
     <Compile Include="WindowManager.cs" />
     <Compile Include="SpeedrunTimer.cs" />
     <Compile Include="ConfigManager.cs" />

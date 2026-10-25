@@ -139,16 +139,55 @@ namespace EyesSpeedrunToolkit
             MelonLogger.Msg($"Total GameObjects in scene: {allObjects.Length}");
 
             int monsterCount = 0;
+            int bagCount = 0;
+            int sackCount = 0;
+            int lootCount = 0;
+            int itemCount = 0;
+            int pickupCount = 0;
+
             foreach (GameObject obj in allObjects)
             {
                 if (obj == null) continue;
-                if (obj.name.StartsWith("Enemy_") || obj.name == "Dog")
+
+                // Логируем монстров
+                if (obj.name.StartsWith("Enemy_"))
                 {
                     MelonLogger.Msg($"  Monster: '{obj.name}' (Active: {obj.activeInHierarchy}, Pos: {obj.transform.position})");
                     monsterCount++;
                 }
+
+                string name = obj.name.ToLower();
+
+                // Ищем мешки по разным возможным названиям
+                if (name.Contains("bag"))
+                {
+                    MelonLogger.Msg($"  BAG: '{obj.name}' (Active: {obj.activeInHierarchy}, Pos: {obj.transform.position})");
+                    bagCount++;
+                }
+                else if (name.Contains("sack"))
+                {
+                    MelonLogger.Msg($"  SACK: '{obj.name}' (Active: {obj.activeInHierarchy}, Pos: {obj.transform.position})");
+                    sackCount++;
+                }
+                else if (name.Contains("loot"))
+                {
+                    MelonLogger.Msg($"  LOOT: '{obj.name}' (Active: {obj.activeInHierarchy}, Pos: {obj.transform.position})");
+                    lootCount++;
+                }
+                else if (name.Contains("item") && !name.Contains("item_"))
+                {
+                    MelonLogger.Msg($"  ITEM: '{obj.name}' (Active: {obj.activeInHierarchy}, Pos: {obj.transform.position})");
+                    itemCount++;
+                }
+                else if (name.Contains("pickup") || name.Contains("collect"))
+                {
+                    MelonLogger.Msg($"  PICKUP: '{obj.name}' (Active: {obj.activeInHierarchy}, Pos: {obj.transform.position})");
+                    pickupCount++;
+                }
             }
+
             MelonLogger.Msg($"Total monsters found: {monsterCount}");
+            MelonLogger.Msg($"--- Summary: Bags={bagCount}, Sacks={sackCount}, Loot={lootCount}, Items={itemCount}, Pickups={pickupCount} ---");
             MelonLogger.Msg("=== END DIAGNOSTICS ===");
         }
 
