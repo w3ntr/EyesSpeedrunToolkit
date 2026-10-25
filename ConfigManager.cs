@@ -8,16 +8,20 @@ namespace EyesSpeedrunToolkit
     {
         // QoL настройки
         public static bool DisablePostProcessing = false;
-        public static bool DisableVSync = false;
-        public static int CustomFPS = 0;
+        public static bool DisableVSync = false;       // <-- Вернули
+        public static int CustomFPS = 0;               // <-- Вернули
         public static float TargetFOV = 60f;
         public static bool TimerEnabled = true;
-        public static bool MonsterTrackerEnabled = false;
         public static float TimerX = 10f;
         public static float TimerY = 10f;
 
         // Cheats (Not for SRC)
-        public static float FarClipPlane = 0.01f; // 0.01 = 11m, 1.00 = 1000m (Написано для себя, не обращайте внимания)
+        public static float FarClipPlane = 0.01f;
+        public static bool DisableFalloffShader = false;
+        public static float RenderDistance = 11f; // В метрах (11-1000)
+        public static bool ESPEnabled = false;
+        public static bool MonsterTrackerEnabled = false;
+        public static bool ESP2DBoxEnabled = false;
 
         // Меню
         public static KeyCode MenuKey = KeyCode.F1;
@@ -37,9 +41,13 @@ namespace EyesSpeedrunToolkit
                 TargetFOV = PlayerPrefs.GetFloat(PREFIX + "FOV", 60f);
                 TimerEnabled = PlayerPrefs.GetInt(PREFIX + "TimerEnabled", 1) == 1;
                 MonsterTrackerEnabled = PlayerPrefs.GetInt(PREFIX + "MonsterTracker", 0) == 1;
+                ESPEnabled = PlayerPrefs.GetInt(PREFIX + "ESP", 0) == 1;
+                ESP2DBoxEnabled = PlayerPrefs.GetInt(PREFIX + "ESP2DBox", 0) == 1;
+                DisableFalloffShader = PlayerPrefs.GetInt(PREFIX + "DisableFalloff", 0) == 1;
                 TimerX = PlayerPrefs.GetFloat(PREFIX + "TimerX", 10f);
                 TimerY = PlayerPrefs.GetFloat(PREFIX + "TimerY", 10f);
                 FarClipPlane = PlayerPrefs.GetFloat(PREFIX + "FarClip", 0.01f);
+                RenderDistance = PlayerPrefs.GetFloat(PREFIX + "RenderDistance", 11f);
                 int keyInt = PlayerPrefs.GetInt(PREFIX + "MenuKey", (int)KeyCode.F1);
                 MenuKey = (KeyCode)keyInt;
                 _loaded = true;
@@ -62,9 +70,13 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetFloat(PREFIX + "FOV", TargetFOV);
                 PlayerPrefs.SetInt(PREFIX + "TimerEnabled", TimerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "MonsterTracker", MonsterTrackerEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "ESP", ESPEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "ESP2DBox", ESP2DBoxEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "DisableFalloff", DisableFalloffShader ? 1 : 0);
                 PlayerPrefs.SetFloat(PREFIX + "TimerX", TimerX);
                 PlayerPrefs.SetFloat(PREFIX + "TimerY", TimerY);
                 PlayerPrefs.SetFloat(PREFIX + "FarClip", FarClipPlane);
+                PlayerPrefs.SetFloat(PREFIX + "RenderDistance", RenderDistance);
                 PlayerPrefs.SetInt(PREFIX + "MenuKey", (int)MenuKey);
                 PlayerPrefs.Save();
             }
@@ -82,9 +94,13 @@ namespace EyesSpeedrunToolkit
             TargetFOV = 60f;
             TimerEnabled = true;
             MonsterTrackerEnabled = false;
+            ESPEnabled = false;
+            ESP2DBoxEnabled = false;
+            DisableFalloffShader = false;
             TimerX = 10f;
             TimerY = 10f;
             FarClipPlane = 0.01f;
+            RenderDistance = 11f;
             MenuKey = KeyCode.F1;
             Save();
             MelonLogger.Msg("ConfigManager: Reset to defaults");

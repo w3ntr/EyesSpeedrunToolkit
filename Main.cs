@@ -2,48 +2,40 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.0.1", "w3ntr")]
+[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.2.0", "w3ntr")]
 [assembly: MelonGame("", "Eyes")]
 
 namespace EyesSpeedrunToolkit
 {
     public class Main : MelonMod
     {
-        private static string _lastScene = "";
 
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.0.1 Loaded ===");
-
+            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.2.0 Loaded ===");
             ConfigManager.Load();
-
             GraphicsModule.Initialize();
             MonsterTracker.Initialize();
-
             MelonLogger.Msg("All modules initialized!");
         }
 
         public override void OnUpdate()
         {
+            SpeedrunTimer.Update();
             GraphicsModule.Update();
             MonsterTracker.Update();
             HUDManager.Update();
         }
 
-        public override void OnSceneWasInitialized(int buildIndex, string sceneName)
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             MelonLogger.Msg($"Scene is loaded: {sceneName}");
 
-            if (sceneName == _lastScene) return;
-            _lastScene = sceneName;
-
-            bool isGameScene = sceneName == "School" || sceneName == "Hospital" || sceneName == "Mansion";
-
-            if (isGameScene)
+            // Автозапуск таймера в игровых сценах
+            if (sceneName == "School" || sceneName == "Hospital" || sceneName == "Mansion")
             {
-                GraphicsModule.Reset();
-                MonsterTracker.Reset();
                 SpeedrunTimer.Start();
+                MelonLogger.Msg("SpeedrunTimer: Auto-started in game scene");
             }
         }
 

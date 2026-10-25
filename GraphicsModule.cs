@@ -1,42 +1,26 @@
-﻿using UnityEngine;
-using UnityEngine.SceneManagement;
-using MelonLoader;
+﻿using MelonLoader;
+using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.SceneManagement;
 
 namespace EyesSpeedrunToolkit
 {
     public static class GraphicsModule
     {
         private static Camera _mainCamera;
+        private static Dictionary<Material, Shader> _originalFalloffShaders = new Dictionary<Material, Shader>();
+        private static List<ParticleSystem> _disabledParticles = new List<ParticleSystem>();
         private static bool _initialized = false;
         private static bool _lastDisablePP = false;
-        private static bool _lastDisableVSync = false;
-        private static int _lastCustomFPS = 0;
         private static float _lastFarClip = 0.01f;
+        private static bool _lastDisableFalloff = false;
+        private static float _lastRenderDistance = 11f;
 
         public static void Initialize()
         {
             MelonLogger.Msg("GraphicsModule: Initialized");
-            ApplyFPSLimit(); // Применяем сразу
-        }
-
-        // Этот метод вызывается КАЖДЫЙ КАДР для гарантии
-        private static void ApplyFPSLimit()
-        {
-            // ВСЕГДА используем VSync + targetFrameRate для стабильности
-            QualitySettings.vSyncCount = 1;
-
-            int targetFPS = ConfigManager.CustomFPS > 0 ? ConfigManager.CustomFPS : Screen.currentResolution.refreshRate;
-            if (targetFPS <= 0) targetFPS = 60;
-
-            Application.targetFrameRate = targetFPS;
-
-            // Логируем только при изменении
-            if (_lastCustomFPS != ConfigManager.CustomFPS)
-            {
-                _lastCustomFPS = ConfigManager.CustomFPS;
-                MelonLogger.Msg($"GraphicsModule: FPS limited to {targetFPS} (VSync enabled)");
-            }
         }
 
         private static float ConvertFarClipToMeters(float normalizedValue)
@@ -44,36 +28,40 @@ namespace EyesSpeedrunToolkit
             return 11f + (normalizedValue - 0.01f) / (1.00f - 0.01f) * (1000f - 11f);
         }
 
+        private static void ApplyFPSLimit()
+        {
+            if (ConfigManager.DisableVSync)
+            {
+                if (QualitySettings.vSyncCount != 0) QualitySettings.vSyncCount = 0;
+                int targetFPS = ConfigManager.CustomFPS > 0 ? ConfigManager.CustomFPS : -1;
+                if (Application.targetFrameRate != targetFPS) Application.targetFrameRate = targetFPS;
+            }
+            else
+            {
+                if (QualitySettings.vSyncCount != 1) QualitySettings.vSyncCount = 1;
+                int refreshRate = Screen.currentResolution.refreshRate;
+                if (refreshRate <= 0) refreshRate = 60;
+                if (Application.targetFrameRate != refreshRate) Application.targetFrameRate = refreshRate;
+            }
+        }
+
         public static void Update()
         {
-            // ВСЕГДА применяем FPS лимит (каждый кадр!)
             ApplyFPSLimit();
 
-            // Проверяем изменения настроек (для логирования)
-            if (_lastDisableVSync != ConfigManager.DisableVSync || _lastCustomFPS != ConfigManager.CustomFPS)
-            {
-                _lastDisableVSync = ConfigManager.DisableVSync;
-                _lastCustomFPS = ConfigManager.CustomFPS;
-                MelonLogger.Msg($"GraphicsModule: FPS settings updated (VSync: {!ConfigManager.DisableVSync}, Limit: {ConfigManager.CustomFPS}, Actual: {Application.targetFrameRate})");
-            }
-
-            // === Игровые настройки только в игровых сценах ===
             string currentScene = SceneManager.GetActiveScene().name;
             bool isGameScene = currentScene == "School" || currentScene == "Hospital" || currentScene == "Mansion";
 
             if (!isGameScene) return;
 
-            // FOV
-            if (_mainCamera != null && Mathf.Abs(_mainCamera.fieldOfView - ConfigManager.TargetFOV) > 0.1f)
+            if (_mainCamera != null)
             {
                 _mainCamera.fieldOfView = ConfigManager.TargetFOV;
             }
 
-            // Инициализация камеры (только один раз)
             if (!_initialized)
             {
-                _mainCamera = Camera.main ?? Object.FindObjectOfType<Camera>();
-
+                _mainCamera = Camera.main ?? UnityEngine.Object.FindObjectOfType<Camera>();
                 if (_mainCamera != null)
                 {
                     MelonLogger.Msg($"GraphicsModule: Camera found in '{currentScene}' ({_mainCamera.name})");
@@ -81,13 +69,7 @@ namespace EyesSpeedrunToolkit
                     ApplySettings();
                 }
             }
-            // Временная диагностика - убрать после проверки
-            if (Time.frameCount % 60 == 0) // Логируем каждые 60 кадров (примерно раз в секунду)
-            {
-                MelonLogger.Msg($"[DIAG] Frame {Time.frameCount}: targetFrameRate={Application.targetFrameRate}, vSyncCount={QualitySettings.vSyncCount}, actualFPS={1f / Time.deltaTime:F0}");
-            }
 
-            // Проверяем изменения игровых настроек
             CheckAndApplyGameChanges();
         }
 
@@ -107,11 +89,30 @@ namespace EyesSpeedrunToolkit
                 settingsChanged = true;
             }
 
+            if (_lastDisableFalloff != ConfigManager.DisableFalloffShader)
+            {
+                _lastDisableFalloff = ConfigManager.DisableFalloffShader;
+                ApplyFalloffShaderFix(ConfigManager.DisableFalloffShader);
+                settingsChanged = true;
+            }
+
+            if (Mathf.Abs(_lastRenderDistance - ConfigManager.RenderDistance) > 0.1f)
+            {
+                _lastRenderDistance = ConfigManager.RenderDistance;
+                ApplyRenderDistance();
+                settingsChanged = true;
+            }
+
             if (settingsChanged)
             {
                 ApplySettings();
-                MelonLogger.Msg("GraphicsModule: Game settings changed, reapplying...");
             }
+        }
+
+        private static void ApplyRenderDistance()
+        {
+            if (_mainCamera == null) return;
+            _mainCamera.farClipPlane = ConfigManager.RenderDistance;
         }
 
         private static void ApplySettings()
@@ -119,13 +120,91 @@ namespace EyesSpeedrunToolkit
             if (_mainCamera == null) return;
 
             _mainCamera.fieldOfView = ConfigManager.TargetFOV;
-
             float farClipMeters = ConvertFarClipToMeters(ConfigManager.FarClipPlane);
             _mainCamera.farClipPlane = farClipMeters;
 
-            MelonLogger.Msg($"GraphicsModule: Far Clip Plane set to {farClipMeters:F1}m (normalized: {ConfigManager.FarClipPlane:F2})");
-
             TogglePostProcessing(!ConfigManager.DisablePostProcessing);
+            ApplyRenderDistance();
+        }
+
+        private static void ApplyFalloffShaderFix(bool disable)
+        {
+            if (disable)
+            {
+                // 1. Заменяем шейдер у стен (пропуская партиклы)
+                Renderer[] allRenderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
+                int replaced = 0;
+
+                foreach (Renderer rend in allRenderers)
+                {
+                    if (rend == null) continue;
+
+                    // ПРОПУСКАЕМ ПАРТИКЛЫ
+                    if (rend is ParticleSystemRenderer) continue;
+
+                    foreach (Material mat in rend.sharedMaterials)
+                    {
+                        if (mat == null || mat.shader == null) continue;
+
+                        if (mat.shader.name == "CustomShaders/FalloffPlusLightmap")
+                        {
+                            if (!_originalFalloffShaders.ContainsKey(mat))
+                            {
+                                _originalFalloffShaders[mat] = mat.shader;
+                            }
+
+                            Shader newShader = Shader.Find("Unlit/Texture");
+                            if (newShader != null)
+                            {
+                                mat.shader = newShader;
+                                replaced++;
+                            }
+                        }
+                    }
+                }
+                MelonLogger.Msg($"GraphicsModule: Replaced {replaced} FalloffPlusLightmap materials");
+
+                // 2. Отключаем все партиклы (чтобы не было черных квадратов)
+                ParticleSystem[] allParticles = UnityEngine.Object.FindObjectsOfType<ParticleSystem>();
+                foreach (ParticleSystem ps in allParticles)
+                {
+                    if (ps == null) continue;
+                    if (!_disabledParticles.Contains(ps))
+                    {
+                        _disabledParticles.Add(ps);
+                        ps.Stop();
+                        ps.gameObject.SetActive(false);
+                    }
+                }
+                MelonLogger.Msg($"GraphicsModule: Disabled {_disabledParticles.Count} particle systems");
+            }
+            else
+            {
+                // 1. Возвращаем шейдеры
+                int restored = 0;
+                foreach (var kvp in _originalFalloffShaders)
+                {
+                    if (kvp.Key != null && kvp.Value != null)
+                    {
+                        kvp.Key.shader = kvp.Value;
+                        restored++;
+                    }
+                }
+                _originalFalloffShaders.Clear();
+                MelonLogger.Msg($"GraphicsModule: Restored {restored} original shaders");
+
+                // 2. Включаем партиклы обратно
+                foreach (ParticleSystem ps in _disabledParticles)
+                {
+                    if (ps != null)
+                    {
+                        ps.gameObject.SetActive(true);
+                        ps.Play();
+                    }
+                }
+                MelonLogger.Msg($"GraphicsModule: Restored {_disabledParticles.Count} particle systems");
+                _disabledParticles.Clear();
+            }
         }
 
         private static void TogglePostProcessing(bool enable)
@@ -138,7 +217,7 @@ namespace EyesSpeedrunToolkit
                 postProcessLayer.enabled = enable;
             }
 
-            GameObject[] allObjects = Object.FindObjectsOfType<GameObject>();
+            GameObject[] allObjects = UnityEngine.Object.FindObjectsOfType<GameObject>();
             foreach (GameObject obj in allObjects)
             {
                 if (obj == null) continue;
@@ -152,10 +231,35 @@ namespace EyesSpeedrunToolkit
 
         public static void Reset()
         {
+            // Сначала восстанавливаем всё
+            if (_originalFalloffShaders.Count > 0)
+            {
+                foreach (var kvp in _originalFalloffShaders)
+                {
+                    if (kvp.Key != null && kvp.Value != null)
+                    {
+                        kvp.Key.shader = kvp.Value;
+                    }
+                }
+                _originalFalloffShaders.Clear();
+            }
+
+            foreach (ParticleSystem ps in _disabledParticles)
+            {
+                if (ps != null)
+                {
+                    ps.gameObject.SetActive(true);
+                    ps.Play();
+                }
+            }
+            _disabledParticles.Clear();
+
             _initialized = false;
             _mainCamera = null;
             _lastDisablePP = false;
             _lastFarClip = 0.01f;
+            _lastDisableFalloff = false;
+            _lastRenderDistance = 11f;
             MelonLogger.Msg("GraphicsModule: Reset (game settings only)");
         }
     }

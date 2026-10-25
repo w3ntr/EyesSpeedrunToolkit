@@ -84,6 +84,10 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Eyes - The Horror Game\Eyes_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Eyes - The Horror Game\Eyes_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Eyes - The Horror Game\Eyes_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
@@ -101,6 +105,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="WindowManager.cs" />
     <Compile Include="SpeedrunTimer.cs" />
     <Compile Include="ConfigManager.cs" />
     <Compile Include="GraphicsModule.cs" />

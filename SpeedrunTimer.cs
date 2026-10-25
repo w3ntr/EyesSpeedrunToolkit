@@ -1,14 +1,33 @@
 ﻿using UnityEngine;
 using MelonLoader;
-using System;
+using UnityEngine.SceneManagement;
 
 namespace EyesSpeedrunToolkit
 {
     public static class SpeedrunTimer
     {
-        private static float _startTime;
+        private static float _elapsedTime = 0f;
         private static bool _isRunning = false;
         private static bool _isFinished = false;
+
+        public static void Update()
+        {
+            // 1. ЖЁСТКАЯ ПРОВЕРКА СЦЕНЫ
+            string currentScene = SceneManager.GetActiveScene().name;
+            bool isGameScene = currentScene == "School" || currentScene == "Hospital" || currentScene == "Mansion";
+
+            // Если мы в меню, заставке или уже вышли, время НЕ прибавляется
+            if (!isGameScene)
+            {
+                return;
+            }
+
+            // 2. Логика тикания времени
+            if (_isRunning && !_isFinished)
+            {
+                _elapsedTime += Time.deltaTime;
+            }
+        }
 
         // Форматирование времени
         public static string GetFormattedTime(float seconds)
@@ -31,13 +50,16 @@ namespace EyesSpeedrunToolkit
         // Запустить таймер
         public static void Start()
         {
-            _startTime = Time.time;
-            _isRunning = true;
-            _isFinished = false;
-            MelonLogger.Msg("SpeedrunTimer: Started");
+            string currentScene = SceneManager.GetActiveScene().name;
+            if (currentScene == "School" || currentScene == "Hospital" || currentScene == "Mansion")
+            {
+                _isRunning = true;
+                _isFinished = false;
+                _elapsedTime = 0f; // Сбрасываем накопленное время при новом старте
+            }
         }
 
-        // Остановить таймер
+        // Остановить таймер (например, при смерти или выходе)
         public static void Stop()
         {
             _isRunning = false;
@@ -48,17 +70,16 @@ namespace EyesSpeedrunToolkit
         // Сбросить таймер
         public static void Reset()
         {
-            _startTime = 0f;
+            _elapsedTime = 0f;
             _isRunning = false;
             _isFinished = false;
             MelonLogger.Msg("SpeedrunTimer: Reset");
         }
 
-        // Получить текущее время
+        // Получить текущее время (просто возвращаем накопленное)
         public static float GetCurrentTime()
         {
-            if (!_isRunning) return 0f;
-            return Time.time - _startTime;
+            return _elapsedTime;
         }
 
         // Получить текущее время в формате строки
@@ -77,6 +98,14 @@ namespace EyesSpeedrunToolkit
         public static bool IsFinished()
         {
             return _isFinished;
+        }
+
+        // Завершить таймер (при сборе последнего мешка)
+        public static void Finish()
+        {
+            _isFinished = true;
+            _isRunning = false;
+            MelonLogger.Msg($"SpeedrunTimer: Finished at {GetCurrentTimeFormatted()}");
         }
     }
 }
