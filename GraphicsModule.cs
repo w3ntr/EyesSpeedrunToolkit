@@ -136,15 +136,13 @@ namespace EyesSpeedrunToolkit
         {
             if (disable)
             {
-                // 1. Заменяем шейдер у стен (пропуская партиклы)
                 Renderer[] allRenderers = UnityEngine.Object.FindObjectsOfType<Renderer>();
                 int replaced = 0;
+                int skippedPortals = 0;
 
                 foreach (Renderer rend in allRenderers)
                 {
                     if (rend == null) continue;
-
-                    // ПРОПУСКАЕМ ПАРТИКЛЫ
                     if (rend is ParticleSystemRenderer) continue;
 
                     foreach (Material mat in rend.sharedMaterials)
@@ -153,6 +151,46 @@ namespace EyesSpeedrunToolkit
 
                         if (mat.shader.name == "CustomShaders/FalloffPlusLightmap")
                         {
+                            // === ПУЛЕНЕПРОБИВАЕМАЯ ПРОВЕРКА НА ПОРТАЛ ===
+                            bool isPortal = false;
+                            Transform current = rend.transform;
+
+                            // Поднимаемся вверх по иерархии объекта (от ребенка к родителю)
+                            while (current != null)
+                            {
+                                // 1. Проверка тега на любом уровне иерархии
+                                if (current.CompareTag("MansionPortal"))
+                                {
+                                    isPortal = true;
+                                    break;
+                                }
+
+                                // 2. Проверка имени на любом уровне (добавил "exit" и "gate", так как порталы часто так называются)
+                                string objName = current.name.ToLower();
+                                if (objName.Contains("portal") || objName.Contains("teleport") ||
+                                    objName.Contains("exit") || objName.Contains("gate"))
+                                {
+                                    isPortal = true;
+                                    break;
+                                }
+
+                                // 3. Проверка наличия компонента Teleport на любом уровне
+                                if (current.GetComponent("Teleport") != null)
+                                {
+                                    isPortal = true;
+                                    break;
+                                }
+
+                                current = current.parent; // Переходим к родителю
+                            }
+
+                            if (isPortal)
+                            {
+                                skippedPortals++;
+                                continue; // Пропускаем этот материал, оставляем оригинальный шейдер
+                            }
+                            // ============================================
+
                             if (!_originalFalloffShaders.ContainsKey(mat))
                             {
                                 _originalFalloffShaders[mat] = mat.shader;
@@ -167,13 +205,42 @@ namespace EyesSpeedrunToolkit
                         }
                     }
                 }
-                MelonLogger.Msg($"GraphicsModule: Replaced {replaced} FalloffPlusLightmap materials");
+                MelonLogger.Msg($"GraphicsModule: Replaced {replaced} FalloffPlusLightmap materials (Skipped {skippedPortals} portal materials)");
 
-                // 2. Отключаем все партиклы (чтобы не было черных квадратов)
+                // 2. Отключаем все партиклы (чтобы не было черных квадратов), НО пропускаем порталы!
                 ParticleSystem[] allParticles = UnityEngine.Object.FindObjectsOfType<ParticleSystem>();
+                int skippedParticlePortals = 0;
+
                 foreach (ParticleSystem ps in allParticles)
                 {
                     if (ps == null) continue;
+
+                    // === ПРОВЕРКА: Является ли этот партикл частью портала? ===
+                    bool isPortalParticle = false;
+                    Transform current = ps.transform;
+
+                    while (current != null)
+                    {
+                        if (current.CompareTag("MansionPortal") ||
+                            current.name.ToLower().Contains("portal") ||
+                            current.name.ToLower().Contains("teleport") ||
+                            current.name.ToLower().Contains("exit") ||
+                            current.name.ToLower().Contains("gate") ||
+                            current.GetComponent("Teleport") != null)
+                        {
+                            isPortalParticle = true;
+                            break;
+                        }
+                        current = current.parent;
+                    }
+
+                    if (isPortalParticle)
+                    {
+                        skippedParticlePortals++;
+                        continue; // НЕ отключаем партиклы портала!
+                    }
+                    // ==========================================================
+
                     if (!_disabledParticles.Contains(ps))
                     {
                         _disabledParticles.Add(ps);
@@ -181,7 +248,7 @@ namespace EyesSpeedrunToolkit
                         ps.gameObject.SetActive(false);
                     }
                 }
-                MelonLogger.Msg($"GraphicsModule: Disabled {_disabledParticles.Count} particle systems");
+                MelonLogger.Msg($"GraphicsModule: Disabled {_disabledParticles.Count} particle systems (Skipped {skippedParticlePortals} portal particles)");
             }
             else
             {

@@ -18,10 +18,11 @@ namespace EyesSpeedrunToolkit
         private static bool _isDraggingTimer = false;
         private static Vector2 _timerDragOffset;
 
-        // Для скроллбара в Cheats
         private static Vector2 _cheatsScrollPosition;
+        private static Vector2 _practiceScrollPosition;
 
         private static Color _warningColor = new Color(1f, 0.3f, 0.3f, 1f);
+
         public static bool IsMenuOpen => _menuOpen;
 
         public static void Initialize()
@@ -64,13 +65,14 @@ namespace EyesSpeedrunToolkit
 
         public static void OnGUI()
         {
+            // 1. Управление курсором
             if (_menuOpen)
             {
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
             }
 
-            // ТАЙМЕР с перетаскиванием
+            // ТАЙМЕР (рисуем ТОЛЬКО в игровых сценах)
             if (ConfigManager.TimerEnabled)
             {
                 string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
@@ -78,15 +80,23 @@ namespace EyesSpeedrunToolkit
                 if (isGameScene)
                 {
                     string timeText = "00:00";
-                    if (SpeedrunTimer.IsRunning()) timeText = SpeedrunTimer.GetCurrentTimeFormatted();
-                    else if (SpeedrunTimer.IsFinished()) timeText = SpeedrunTimer.GetCurrentTimeFormatted() + " (FINISHED)";
+                    if (SpeedrunTimer.IsRunning())
+                    {
+                        timeText = SpeedrunTimer.GetCurrentTimeFormatted();
+                    }
+                    else if (SpeedrunTimer.IsFinished())
+                    {
+                        timeText = SpeedrunTimer.GetCurrentTimeFormatted() + " (FINISHED)";
+                    }
 
                     Rect timerRect = new Rect(ConfigManager.TimerX, ConfigManager.TimerY, 200f, 30f);
 
+                    // Перетаскивание таймера
                     if (Event.current.type == EventType.MouseDown && timerRect.Contains(Event.current.mousePosition))
                     {
                         _isDraggingTimer = true;
-                        _timerDragOffset = new Vector2(Event.current.mousePosition.x - ConfigManager.TimerX, Event.current.mousePosition.y - ConfigManager.TimerY);
+                        _timerDragOffset = new Vector2(Event.current.mousePosition.x - ConfigManager.TimerX,
+                                                       Event.current.mousePosition.y - ConfigManager.TimerY);
                     }
 
                     if (_isDraggingTimer && Event.current.type == EventType.MouseDrag)
@@ -112,27 +122,19 @@ namespace EyesSpeedrunToolkit
             if (ConfigManager.MonsterTrackerEnabled)
             {
                 Vector3 monsterPos = MonsterTracker.GetCurrentPosition();
-                if (monsterPos != Vector3.zero) DrawMonsterESP(monsterPos);
+                if (monsterPos != Vector3.zero)
+                {
+                    DrawMonsterESP(monsterPos);
+                }
             }
 
             // МЕНЮ (делегировано WindowManager)
             if (_menuOpen)
             {
                 WindowManager.Draw("Eyes Speedrun Toolkit", DrawWindowContent);
-
-                // БЛОКИРОВКА КЛИКОВ СКВОЗЬ МЕНЮ
-                if (WindowManager.WindowRect.Contains(Event.current.mousePosition))
-                {
-                    if (Event.current.type == EventType.MouseDown ||
-                        Event.current.type == EventType.MouseUp ||
-                        Event.current.type == EventType.MouseDrag)
-                    {
-                        Event.current.Use();
-                    }
-                }
             }
 
-            // 2D ESP BOX
+            // 2D ESP BOX (Рисуется поверх всего)
             if (ConfigManager.ESP2DBoxEnabled)
             {
                 Vector3 monsterPos = MonsterTracker.GetCurrentPosition();
@@ -147,20 +149,43 @@ namespace EyesSpeedrunToolkit
                         GUI.DrawTexture(new Rect(guiX, guiY, 40f, 40f), Texture2D.whiteTexture);
 
                         float dist = MonsterTracker.GetDistanceToPlayer();
-                        if (dist > 0) GUI.Label(new Rect(guiX - 10f, guiY + 42f, 60f, 20f), $"{dist:F1}m");
+                        if (dist > 0)
+                        {
+                            GUI.Label(new Rect(guiX - 10f, guiY + 42f, 60f, 20f), $"{dist:F1}m");
+                        }
 
                         GUI.color = Color.white;
                     }
-                    // BAGS WALLHACK INDICATORS
-                    BagsWallHack.DrawBagIndicators();
                 }
             }
+
+            // BAGS WALLHACK INDICATORS (отдельно, не внутри ESP2DBox)
+            BagsWallHack.DrawBagIndicators();
+
+            // ==========================================
+            // ТАЙМЕР РЕГЕНЕРАЦИИ СТАМИНЫ (QoL)
+            // ВЫНЕСЕН ОТДЕЛЬНО, НЕ ЗАВИСИТ ОТ ESP2DBox!
+            // ==========================================
+            if (ConfigManager.StaminaTimerEnabled && !string.IsNullOrEmpty(PlayerModifiers.StaminaTimerText))
+            {
+                float width = 300f;
+                float height = 30f;
+                float x = (Screen.width - width) / 2f;
+                float y = Screen.height - 150f;
+
+                GUI.color = new Color(0, 0, 0, 0.5f);
+                GUI.DrawTexture(new Rect(x, y, width, height), Texture2D.whiteTexture);
+                GUI.color = Color.white;
+
+                GUI.Label(new Rect(x, y, width, height), PlayerModifiers.StaminaTimerText);
+            }
+            // ==========================================
         }
 
         private static void DrawWindowContent(int windowID)
         {
             GUILayout.BeginHorizontal();
-            // Теперь 4 вкладки: QoL (0), Practice (1), Cheats (2), Settings (3)
+            // 4 вкладки: QoL (0), Practice (1), Cheats (2), Settings (3)
             _selectedTab = GUILayout.SelectionGrid(_selectedTab, new string[] { "QoL", "Practice", "Cheats", "Settings" }, 4, GUILayout.Height(30));
             GUILayout.EndHorizontal();
             GUILayout.Space(10);
@@ -168,7 +193,7 @@ namespace EyesSpeedrunToolkit
             switch (_selectedTab)
             {
                 case 0: DrawQoLTab(); break;
-                case 1: DrawPracticeTab(); break; // <-- НОВОЕ
+                case 1: DrawPracticeTab(); break;
                 case 2: DrawCheatsTab(); break;
                 case 3: DrawSettingsTab(); break;
             }
@@ -184,11 +209,15 @@ namespace EyesSpeedrunToolkit
             GUILayout.Label("Quality of Life (Allowed on SRC)", GUILayout.Height(20));
             GUILayout.Space(10);
 
-            bool newDisablePP = GUILayout.Toggle(ConfigManager.DisablePostProcessing, "Disable Post-Processing");
-            if (newDisablePP != ConfigManager.DisablePostProcessing) ConfigManager.DisablePostProcessing = newDisablePP;
+            bool newDisablePP = GUILayout.Toggle(ConfigManager.DisablePostProcessing, "Disable Post-Processing (Vignette, Bloom, etc.)");
+            if (newDisablePP != ConfigManager.DisablePostProcessing) { ConfigManager.DisablePostProcessing = newDisablePP; }
 
             bool newDisableVSync = GUILayout.Toggle(ConfigManager.DisableVSync, "Disable V-Sync");
-            if (newDisableVSync != ConfigManager.DisableVSync) { ConfigManager.DisableVSync = newDisableVSync; GraphicsModule.Reset(); }
+            if (newDisableVSync != ConfigManager.DisableVSync)
+            {
+                ConfigManager.DisableVSync = newDisableVSync;
+                GraphicsModule.Reset();
+            }
 
             if (ConfigManager.DisableVSync)
             {
@@ -196,29 +225,45 @@ namespace EyesSpeedrunToolkit
                 string fpsLabel = ConfigManager.CustomFPS > 0 ? $"FPS Limit: {ConfigManager.CustomFPS}" : "FPS Limit: Unlimited";
                 GUILayout.Label(fpsLabel, GUILayout.Height(20));
 
-                float newFpsFloat = GUILayout.HorizontalSlider(ConfigManager.CustomFPS, 0f, 720f);
+                float fpsFloat = ConfigManager.CustomFPS;
+                float newFpsFloat = GUILayout.HorizontalSlider(fpsFloat, 0f, 300f);
                 int newFps = Mathf.RoundToInt(newFpsFloat);
+
                 if (newFps != ConfigManager.CustomFPS)
                 {
                     ConfigManager.CustomFPS = newFps;
                     ConfigManager.Save();
                     GraphicsModule.Reset();
+                    MelonLogger.Msg($"HUDManager: FPS limit changed to {newFps}");
                 }
+
+                GUILayout.Space(5);
                 GUILayout.Label("(0 = Unlimited, 30-300 = FPS cap)", GUILayout.Height(20));
             }
 
             bool newTimerEnabled = GUILayout.Toggle(ConfigManager.TimerEnabled, "Show Speedrun Timer");
-            if (newTimerEnabled != ConfigManager.TimerEnabled) ConfigManager.TimerEnabled = newTimerEnabled;
+            if (newTimerEnabled != ConfigManager.TimerEnabled) { ConfigManager.TimerEnabled = newTimerEnabled; }
 
             GUILayout.Space(10);
             GUILayout.Label("FOV: " + ConfigManager.TargetFOV.ToString("F0"));
             float newFov = GUILayout.HorizontalSlider(ConfigManager.TargetFOV, 60f, 140f);
+
             if (Mathf.Abs(newFov - ConfigManager.TargetFOV) > 0.1f)
             {
                 ConfigManager.TargetFOV = newFov;
                 ConfigManager.Save();
                 GraphicsModule.Reset();
             }
+
+            // === НОВОЕ: Таймер регенерации стамины ===
+            GUILayout.Space(10);
+            bool newStaminaTimer = GUILayout.Toggle(ConfigManager.StaminaTimerEnabled, "Show Stamina Regen Timer");
+            if (newStaminaTimer != ConfigManager.StaminaTimerEnabled)
+            {
+                ConfigManager.StaminaTimerEnabled = newStaminaTimer;
+                ConfigManager.Save();
+            }
+            GUILayout.Label("(Shows time until stamina is full)", GUILayout.Height(20));
         }
 
         private static void DrawPracticeTab()
@@ -231,24 +276,36 @@ namespace EyesSpeedrunToolkit
             GUI.color = originalColor;
             GUILayout.Space(15);
 
+            // Умный скроллбар
+            float availableHeight = WindowManager.WindowRect.height - 130f;
+            float scrollHeight = Mathf.Clamp(availableHeight, 150f, 600f);
+            _practiceScrollPosition = GUILayout.BeginScrollView(_practiceScrollPosition, GUILayout.Height(scrollHeight));
+
+            // Bags Wallhack
             bool newBagsWH = GUILayout.Toggle(ConfigManager.BagsWallHackEnabled, "Bags Wallhack (See sacks through walls)");
             if (newBagsWH != ConfigManager.BagsWallHackEnabled)
             {
                 ConfigManager.BagsWallHackEnabled = newBagsWH;
                 ConfigManager.Save();
-
-                if (ConfigManager.BagsWallHackEnabled)
-                {
-                    BagsWallHack.Enable();
-                }
-                else
-                {
-                    BagsWallHack.Disable();
-                }
+                if (ConfigManager.BagsWallHackEnabled) BagsWallHack.Enable();
+                else BagsWallHack.Disable();
             }
             GUILayout.Label("(Highlights all sacks in green through walls)", GUILayout.Height(20));
 
-            GUILayout.Space(20);
+            GUILayout.Space(10);
+
+            // Infinite Stamina
+            bool newInfStamina = GUILayout.Toggle(ConfigManager.InfiniteStaminaEnabled, "Infinite Stamina");
+            if (newInfStamina != ConfigManager.InfiniteStaminaEnabled)
+            {
+                ConfigManager.InfiniteStaminaEnabled = newInfStamina;
+                ConfigManager.Save();
+            }
+            GUILayout.Label("(Stamina never drains)", GUILayout.Height(20));
+
+            GUILayout.EndScrollView();
+
+            GUILayout.Space(10);
             GUILayout.Label("More practice tools coming soon...", GUILayout.Height(20));
         }
 
@@ -257,18 +314,14 @@ namespace EyesSpeedrunToolkit
             Color originalColor = GUI.color;
             GUI.color = _warningColor;
             GUILayout.Label("⚠️ BANNED ON SPEEDRUN.COM! ⚠️", GUILayout.Height(25));
+            GUILayout.Label("These features give an unfair advantage.", GUILayout.Height(20));
             GUILayout.Label("Use ONLY for practice or casual play.", GUILayout.Height(20));
             GUI.color = originalColor;
-            GUILayout.Space(10);
+            GUILayout.Space(15);
 
-            // === УМНЫЙ СКРОЛЛБАР ===
-            // Вычисляем доступную высоту для скролла
+            // Умный скроллбар
             float availableHeight = WindowManager.WindowRect.height - 130f;
-
-            // Если окно очень маленькое (< 400px), делаем скролл на всю доступную высоту
-            // Если окно нормальное, ограничиваем скролл разумным максимумом
             float scrollHeight = Mathf.Clamp(availableHeight, 150f, 600f);
-
             _cheatsScrollPosition = GUILayout.BeginScrollView(_cheatsScrollPosition, GUILayout.Height(scrollHeight));
 
             bool newESPEnabled = GUILayout.Toggle(ConfigManager.ESPEnabled, "3D ESP (Wallhack)");
@@ -281,17 +334,19 @@ namespace EyesSpeedrunToolkit
             }
 
             GUILayout.Space(10);
-            bool newDisableFalloff = GUILayout.Toggle(ConfigManager.DisableFalloffShader, "Disable Distance Fog");
+
+            bool newDisableFalloff = GUILayout.Toggle(ConfigManager.DisableFalloffShader, "Disable Distance Fog (Falloff Shader)");
             if (newDisableFalloff != ConfigManager.DisableFalloffShader)
             {
                 ConfigManager.DisableFalloffShader = newDisableFalloff;
                 ConfigManager.Save();
                 GraphicsModule.Reset();
             }
+            GUILayout.Space(5);
             GUILayout.Label("(Replaces fog shader with standard texture)", GUILayout.Height(20));
 
             GUILayout.Space(10);
-            GUILayout.Label($"Render Distance: {ConfigManager.RenderDistance:F0}m");
+            GUILayout.Label($"Render Distance: {ConfigManager.RenderDistance:F0}m", GUILayout.Height(20));
             float newRenderDist = GUILayout.HorizontalSlider(ConfigManager.RenderDistance, 11f, 1000f);
             if (Mathf.Abs(newRenderDist - ConfigManager.RenderDistance) > 0.1f)
             {
@@ -299,29 +354,41 @@ namespace EyesSpeedrunToolkit
                 ConfigManager.Save();
                 GraphicsModule.Reset();
             }
+            GUILayout.Label("(11m = original, 1000m = maximum)", GUILayout.Height(20));
+            GUILayout.Space(5);
+            GUILayout.Label("(Monster visible through walls)", GUILayout.Height(20));
 
-            GUILayout.Space(10);
             bool new2DBox = GUILayout.Toggle(ConfigManager.ESP2DBoxEnabled, "2D ESP Box (Fallback)");
-            if (new2DBox != ConfigManager.ESP2DBoxEnabled) { ConfigManager.ESP2DBoxEnabled = new2DBox; ConfigManager.Save(); }
+            if (new2DBox != ConfigManager.ESP2DBoxEnabled)
+            {
+                ConfigManager.ESP2DBoxEnabled = new2DBox;
+                ConfigManager.Save();
+            }
 
-            GUILayout.Space(10);
+            GUILayout.Space(5);
+
             float farClipMeters = 11f + (ConfigManager.FarClipPlane - 0.01f) / (1.00f - 0.01f) * (1000f - 11f);
-            GUILayout.Label($"Far Clip Plane: {farClipMeters:F1}m");
+            GUILayout.Label($"Far Clip Plane: {farClipMeters:F1}m (value: {ConfigManager.FarClipPlane:F2})", GUILayout.Height(20));
             float newFarClip = GUILayout.HorizontalSlider(ConfigManager.FarClipPlane, 0.01f, 1.00f);
-            if (Mathf.Abs(newFarClip - ConfigManager.FarClipPlane) > 0.001f) ConfigManager.FarClipPlane = newFarClip;
+            if (Mathf.Abs(newFarClip - ConfigManager.FarClipPlane) > 0.001f)
+            {
+                ConfigManager.FarClipPlane = newFarClip;
+            }
+            GUILayout.Space(5);
+            GUILayout.Label("(0.01 = 11m original, 1.00 = 1000m max)", GUILayout.Height(20));
 
             GUILayout.Space(20);
             GUILayout.Label("--- Monster Tracker Details ---", GUILayout.Height(20));
+            GUILayout.Space(5);
 
-            // === ВОЗВРАЩЁННЫЙ ТОГГЛ MONSTER TRACKER ===
             bool newMonsterTracker = GUILayout.Toggle(ConfigManager.MonsterTrackerEnabled, "Monster Tracker (Bottom-right info)");
             if (newMonsterTracker != ConfigManager.MonsterTrackerEnabled)
             {
                 ConfigManager.MonsterTrackerEnabled = newMonsterTracker;
                 ConfigManager.Save();
             }
-            GUILayout.Label("(Shows distance and direction to monster)", GUILayout.Height(20));
             GUILayout.Space(5);
+            GUILayout.Label("(Shows distance and direction to monster)", GUILayout.Height(20));
 
             float dist = MonsterTracker.GetDistanceToPlayer();
             if (dist >= 0)
@@ -333,16 +400,18 @@ namespace EyesSpeedrunToolkit
             {
                 GUILayout.Label("Status: Searching or not found", GUILayout.Height(20));
             }
+
+            GUILayout.Space(5);
             GUILayout.Label("Path history: " + MonsterTracker.GetPathHistoryCount() + " points", GUILayout.Height(20));
 
             GUILayout.EndScrollView();
-            // ==============================
         }
 
         private static void DrawSettingsTab()
         {
             GUILayout.Label("Menu Settings", GUILayout.Height(20));
             GUILayout.Space(10);
+
             GUILayout.Label("Current Menu Key: " + ConfigManager.MenuKey.ToString(), GUILayout.Height(20));
             GUILayout.Space(10);
 
@@ -350,12 +419,15 @@ namespace EyesSpeedrunToolkit
             {
                 Color originalColor = GUI.color;
                 GUI.color = Color.yellow;
-                GUILayout.Label(">>> Press any key... (Esc to cancel) <<<", GUILayout.Height(25));
+                GUILayout.Label(">>> Press any key to bind... (Esc to cancel) <<<", GUILayout.Height(25));
                 GUI.color = originalColor;
             }
             else
             {
-                if (GUILayout.Button("Change Menu Key", GUILayout.Height(30))) _isRebinding = true;
+                if (GUILayout.Button("Change Menu Key", GUILayout.Height(30)))
+                {
+                    _isRebinding = true;
+                }
             }
 
             GUILayout.Space(30);
@@ -380,30 +452,51 @@ namespace EyesSpeedrunToolkit
 
             Vector3 playerPos = player.transform.position;
             float distance = Vector3.Distance(playerPos, worldPosition);
+
             Vector3 directionToMonster = (worldPosition - playerPos).normalized;
             Vector3 playerForward = player.transform.forward;
             float angle = Vector3.Angle(playerForward, directionToMonster);
 
             string relativeDirection;
-            if (angle < 45f) relativeDirection = "FRONT";
+            if (angle < 45f)
+            {
+                relativeDirection = "FRONT";
+            }
             else if (angle < 135f)
             {
                 Vector3 cross = Vector3.Cross(playerForward, directionToMonster);
-                relativeDirection = cross.y > 0 ? "RIGHT" : "LEFT";
+                if (cross.y > 0)
+                {
+                    relativeDirection = "RIGHT";
+                }
+                else
+                {
+                    relativeDirection = "LEFT";
+                }
             }
-            else relativeDirection = "BACK";
+            else
+            {
+                relativeDirection = "BACK";
+            }
 
             float boxWidth = 150f;
             float boxHeight = 60f;
             float padding = 10f;
-            Rect espRect = new Rect(Screen.width - boxWidth - padding, Screen.height - boxHeight - padding, boxWidth, boxHeight);
+            Rect espRect = new Rect(
+                Screen.width - boxWidth - padding,
+                Screen.height - boxHeight - padding,
+                boxWidth,
+                boxHeight
+            );
 
             GUI.Box(espRect, "");
+
             Color originalColor = GUI.color;
             GUI.color = distance < 15f ? Color.red : Color.white;
 
-            GUI.Label(new Rect(espRect.x + 5f, espRect.y + 5f, boxWidth - 10f, 20f), $"Distance: {distance:F1}m");
-            GUI.Label(new Rect(espRect.x + 5f, espRect.y + 25f, boxWidth - 10f, 20f), $"Direction: {relativeDirection}");
+            float textY = espRect.y + 5f;
+            GUI.Label(new Rect(espRect.x + 5f, textY, boxWidth - 10f, 20f), $"Distance: {distance:F1}m");
+            GUI.Label(new Rect(espRect.x + 5f, textY + 20f, boxWidth - 10f, 20f), $"Direction: {relativeDirection}");
 
             GUI.color = originalColor;
         }

@@ -26,6 +26,12 @@ namespace EyesSpeedrunToolkit
         // Practice
         public static bool BagsWallHackEnabled = false;
 
+        // PlayerModifiers
+
+        public static bool InfiniteStaminaEnabled = false;
+        public static bool StaminaTimerEnabled = false;
+
+
         // Меню
         public static KeyCode MenuKey = KeyCode.F1;
 
@@ -43,6 +49,8 @@ namespace EyesSpeedrunToolkit
                 CustomFPS = PlayerPrefs.GetInt(PREFIX + "CustomFPS", 0);
                 TargetFOV = PlayerPrefs.GetFloat(PREFIX + "FOV", 60f);
                 TimerEnabled = PlayerPrefs.GetInt(PREFIX + "TimerEnabled", 1) == 1;
+                InfiniteStaminaEnabled = PlayerPrefs.GetInt(PREFIX + "InfiniteStamina", 0) == 1;
+                StaminaTimerEnabled = PlayerPrefs.GetInt(PREFIX + "StaminaTimer", 0) == 1;
                 MonsterTrackerEnabled = PlayerPrefs.GetInt(PREFIX + "MonsterTracker", 0) == 1;
                 ESPEnabled = PlayerPrefs.GetInt(PREFIX + "ESP", 0) == 1;
                 ESP2DBoxEnabled = PlayerPrefs.GetInt(PREFIX + "ESP2DBox", 0) == 1;
@@ -72,6 +80,8 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetInt(PREFIX + "CustomFPS", CustomFPS);
                 PlayerPrefs.SetFloat(PREFIX + "FOV", TargetFOV);
                 PlayerPrefs.SetInt(PREFIX + "TimerEnabled", TimerEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "InfiniteStamina", InfiniteStaminaEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "StaminaTimer", StaminaTimerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "MonsterTracker", MonsterTrackerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP", ESPEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP2DBox", ESP2DBoxEnabled ? 1 : 0);

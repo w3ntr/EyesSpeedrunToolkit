@@ -4,7 +4,7 @@ using UnityEngine.SceneManagement;
 using HarmonyLib;
 using System.Reflection;
 
-[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.2.0", "w3ntr")]
+[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.4.0", "w3ntr")]
 [assembly: MelonGame("", "Eyes")]
 
 namespace EyesSpeedrunToolkit
@@ -13,7 +13,7 @@ namespace EyesSpeedrunToolkit
     {
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.2.0 Loaded ===");
+            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.4.0 Loaded ===");
 
             // 1. Инициализация Harmony (без этого патчи не работают)
             var harmony = new HarmonyLib.Harmony("com.w3ntr.eyesspeedruntoolkit");
@@ -23,6 +23,7 @@ namespace EyesSpeedrunToolkit
             ConfigManager.Load();
             GraphicsModule.Initialize();
             MonsterTracker.Initialize();
+            PlayerModifiers.Initialize();
             HUDManager.Initialize(); // <-- Это критически важно для сохранения биндов!
 
             MelonLogger.Msg("All modules initialized successfully!");
@@ -33,6 +34,7 @@ namespace EyesSpeedrunToolkit
             SpeedrunTimer.Update();
             GraphicsModule.Update();
             MonsterTracker.Update();
+            PlayerModifiers.Update();
             BagsWallHack.Update();
             HUDManager.Update();
         }
@@ -45,6 +47,7 @@ namespace EyesSpeedrunToolkit
             {
                 SpeedrunTimer.Start();
                 MonsterTracker.Reset();
+                PlayerModifiers.Reset();
                 MelonLogger.Msg("SpeedrunTimer: Auto-started in game scene");
             }
         }
