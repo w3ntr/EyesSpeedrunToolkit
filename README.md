@@ -122,7 +122,6 @@ The following features are designed to improve visual clarity and performance st
 
 The following features modify gameplay perception and are restricted to offline practice. Their use invalidates a run for leaderboard submission.
 
-* **Far Clip Plane Adjustment:** Modifies the camera's `farClipPlane` property. The vanilla value is restricted to 11, which causes distant objects to be culled from rendering. The slider uses a normalized 0.01–1.00 range that maps linearly up to a hard cap of 1000 (beyond which rendering breaks due to shader limitations). This provides fine-grained control, allowing runners to observe bag and door placements from a distance during route practice.
 * **Monster Tracker:** Locates the active monster entity in the scene by searching for `GameObjects` with the `Enemy_` prefix (such as `Enemy_Krasue`, `Enemy_Charlie`, `Enemy_Dog`, `Enemy_Witch`). Once located, it continuously computes the Euclidean distance between the monster's transform and the player's position. The distance is displayed in the lower-right corner of the screen during gameplay and in the Cheats tab of the menu. The display turns red when the monster is within 15 meters. The tracker also maintains a rolling history of the last 100 recorded positions.
 
 ## Planned but Not Implemented
