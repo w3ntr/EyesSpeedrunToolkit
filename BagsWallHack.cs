@@ -9,7 +9,17 @@ namespace EyesSpeedrunToolkit
         private static bool _isEnabled = false;
         private static List<GameObject> _foundBags = new List<GameObject>();
 
-        private static readonly string[] BagPrefixes = new string[] { "sack1", "sack2" };
+        // Расширенный список префиксов для ВСЕХ карт
+        private static readonly string[] BagPrefixes = new string[]
+        { 
+            // School и Mansion
+            "sack1", "sack2", "Sack1", "Sack2",
+            // Hospital
+            "sackHospital1", "sackHospital2", "sackHospital3",
+            // Общие для всех карт
+            "MoneyBag", "moneybag", "moneyBags",
+            "Bag", "bag"
+        };
 
         public static void Update()
         {
@@ -39,7 +49,6 @@ namespace EyesSpeedrunToolkit
             }
         }
 
-        // Этот метод вызывается из HUDManager.OnGUI() для рисования 2D-индикаторов
         public static void DrawBagIndicators()
         {
             if (!_isEnabled || Camera.main == null) return;
@@ -48,9 +57,12 @@ namespace EyesSpeedrunToolkit
             {
                 if (bag == null) continue;
 
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(bag.transform.position);
+                // === ИСПРАВЛЕНИЕ: используем bounds.center вместо transform.position ===
+                // Это даёт точную позицию визуальной части мешка, а не его родителя
+                Vector3 bagPosition = GetBagVisualPosition(bag);
 
-                // Проверяем, что мешок перед камерой
+                Vector3 screenPos = Camera.main.WorldToScreenPoint(bagPosition);
+
                 if (screenPos.z > 0)
                 {
                     float guiX = screenPos.x - 15f;
@@ -62,6 +74,21 @@ namespace EyesSpeedrunToolkit
                     GUI.color = Color.white;
                 }
             }
+        }
+
+        // Получаем визуальную позицию мешка через bounds
+        private static Vector3 GetBagVisualPosition(GameObject obj)
+        {
+            // Пробуем найти Renderer (MeshRenderer, SpriteRenderer и т.д.)
+            Renderer renderer = obj.GetComponentInChildren<Renderer>();
+            if (renderer != null)
+            {
+                // bounds.center — это центр визуальной части объекта в мировых координатах
+                return renderer.bounds.center;
+            }
+
+            // Если Renderer не найден, fallback на transform.position
+            return obj.transform.position;
         }
 
         public static void Enable()

@@ -8,20 +8,22 @@ namespace EyesSpeedrunToolkit
     {
         // QoL настройки
         public static bool DisablePostProcessing = false;
-        public static bool DisableVSync = false;       // <-- Вернули
-        public static int CustomFPS = 0;               // <-- Вернули
+        public static bool DisableVSync = false;
+        public static int CustomFPS = 0;
         public static float TargetFOV = 60f;
         public static bool TimerEnabled = true;
+        public static bool ShowMilliseconds = false;
+        public static bool HideHUDEnabled = false;
         public static float TimerX = 10f;
         public static float TimerY = 10f;
 
         // Cheats (Not for SRC)
-        public static float FarClipPlane = 0.01f;
         public static bool DisableFalloffShader = false;
-        public static float RenderDistance = 11f; // В метрах (11-1000)
+        public static float RenderDistance = 11f;
         public static bool ESPEnabled = false;
         public static bool MonsterTrackerEnabled = false;
         public static bool ESP2DBoxEnabled = false;
+        public static bool DisableFadeEnabled = false;
         public static bool FreecamEnabled = false;
 
         // Practice
@@ -50,6 +52,9 @@ namespace EyesSpeedrunToolkit
                 CustomFPS = PlayerPrefs.GetInt(PREFIX + "CustomFPS", 0);
                 TargetFOV = PlayerPrefs.GetFloat(PREFIX + "FOV", 60f);
                 TimerEnabled = PlayerPrefs.GetInt(PREFIX + "TimerEnabled", 1) == 1;
+                ShowMilliseconds = PlayerPrefs.GetInt(PREFIX + "ShowMilliseconds", 0) == 1;
+                HideHUDEnabled = PlayerPrefs.GetInt(PREFIX + "HideHUD", 0) == 1;
+                DisableFadeEnabled = PlayerPrefs.GetInt(PREFIX + "DisableFade", 0) == 1;
                 InfiniteStaminaEnabled = PlayerPrefs.GetInt(PREFIX + "InfiniteStamina", 0) == 1;
                 StaminaTimerEnabled = PlayerPrefs.GetInt(PREFIX + "StaminaTimer", 0) == 1;
                 MonsterTrackerEnabled = PlayerPrefs.GetInt(PREFIX + "MonsterTracker", 0) == 1;
@@ -59,7 +64,6 @@ namespace EyesSpeedrunToolkit
                 DisableFalloffShader = PlayerPrefs.GetInt(PREFIX + "DisableFalloff", 0) == 1;
                 TimerX = PlayerPrefs.GetFloat(PREFIX + "TimerX", 10f);
                 TimerY = PlayerPrefs.GetFloat(PREFIX + "TimerY", 10f);
-                FarClipPlane = PlayerPrefs.GetFloat(PREFIX + "FarClip", 0.01f);
                 RenderDistance = PlayerPrefs.GetFloat(PREFIX + "RenderDistance", 11f);
                 MenuKey = (KeyCode)PlayerPrefs.GetInt(PREFIX + "MenuKey", (int)KeyCode.F1);
                 _loaded = true;
@@ -81,6 +85,9 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetInt(PREFIX + "CustomFPS", CustomFPS);
                 PlayerPrefs.SetFloat(PREFIX + "FOV", TargetFOV);
                 PlayerPrefs.SetInt(PREFIX + "TimerEnabled", TimerEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "ShowMilliseconds", ShowMilliseconds ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "HideHUD", HideHUDEnabled ? 1 : 0);
+                PlayerPrefs.SetInt(PREFIX + "DisableFade", DisableFadeEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "InfiniteStamina", InfiniteStaminaEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "StaminaTimer", StaminaTimerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "MonsterTracker", MonsterTrackerEnabled ? 1 : 0);
@@ -91,7 +98,6 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetInt(PREFIX + "BagsWallHack", BagsWallHackEnabled ? 1 : 0);
                 PlayerPrefs.SetFloat(PREFIX + "TimerX", TimerX);
                 PlayerPrefs.SetFloat(PREFIX + "TimerY", TimerY);
-                PlayerPrefs.SetFloat(PREFIX + "FarClip", FarClipPlane);
                 PlayerPrefs.SetFloat(PREFIX + "RenderDistance", RenderDistance);
                 PlayerPrefs.SetInt(PREFIX + "MenuKey", (int)MenuKey);
                 PlayerPrefs.Save();
@@ -109,6 +115,9 @@ namespace EyesSpeedrunToolkit
             CustomFPS = 0;
             TargetFOV = 60f;
             TimerEnabled = true;
+            ShowMilliseconds = false;
+            HideHUDEnabled = false;
+            DisableFadeEnabled = false;
             MonsterTrackerEnabled = false;
             ESPEnabled = false;
             ESP2DBoxEnabled = false;
@@ -117,7 +126,6 @@ namespace EyesSpeedrunToolkit
             BagsWallHackEnabled = false;
             TimerX = 10f;
             TimerY = 10f;
-            FarClipPlane = 0.01f;
             RenderDistance = 11f;
             MenuKey = KeyCode.F1;
             Save();

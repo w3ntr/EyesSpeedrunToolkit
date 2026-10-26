@@ -14,7 +14,6 @@ namespace EyesSpeedrunToolkit
         private static List<ParticleSystem> _disabledParticles = new List<ParticleSystem>();
         private static bool _initialized = false;
         private static bool _lastDisablePP = false;
-        private static float _lastFarClip = 0.01f;
         private static bool _lastDisableFalloff = false;
         private static float _lastRenderDistance = 11f;
 
@@ -88,12 +87,6 @@ namespace EyesSpeedrunToolkit
                 settingsChanged = true;
             }
 
-            if (Mathf.Abs(_lastFarClip - ConfigManager.FarClipPlane) > 0.001f)
-            {
-                _lastFarClip = ConfigManager.FarClipPlane;
-                settingsChanged = true;
-            }
-
             if (_lastDisableFalloff != ConfigManager.DisableFalloffShader)
             {
                 _lastDisableFalloff = ConfigManager.DisableFalloffShader;
@@ -125,8 +118,6 @@ namespace EyesSpeedrunToolkit
             if (_mainCamera == null) return;
 
             _mainCamera.fieldOfView = ConfigManager.TargetFOV;
-            float farClipMeters = ConvertFarClipToMeters(ConfigManager.FarClipPlane);
-            _mainCamera.farClipPlane = farClipMeters;
 
             TogglePostProcessing(!ConfigManager.DisablePostProcessing);
             ApplyRenderDistance();
@@ -329,7 +320,6 @@ namespace EyesSpeedrunToolkit
             _initialized = false;
             _mainCamera = null;
             _lastDisablePP = false;
-            _lastFarClip = 0.01f;
             _lastDisableFalloff = false;
             _lastRenderDistance = 11f;
             MelonLogger.Msg("GraphicsModule: Reset (game settings only)");

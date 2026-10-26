@@ -13,7 +13,6 @@ namespace EyesSpeedrunToolkit
         private static float _lastFOV;
         private static bool _lastTimerEnabled;
         private static bool _lastMonsterTrackerEnabled;
-        private static float _lastFarClip;
 
         private static bool _isDraggingTimer = false;
         private static Vector2 _timerDragOffset;
@@ -33,7 +32,6 @@ namespace EyesSpeedrunToolkit
             _lastFOV = ConfigManager.TargetFOV;
             _lastTimerEnabled = ConfigManager.TimerEnabled;
             _lastMonsterTrackerEnabled = ConfigManager.MonsterTrackerEnabled;
-            _lastFarClip = ConfigManager.FarClipPlane;
         }
 
         public static void Update()
@@ -97,7 +95,6 @@ namespace EyesSpeedrunToolkit
             if (Mathf.Abs(_lastFOV - ConfigManager.TargetFOV) > 0.1f) { _lastFOV = ConfigManager.TargetFOV; settingsChanged = true; }
             if (_lastTimerEnabled != ConfigManager.TimerEnabled) { _lastTimerEnabled = ConfigManager.TimerEnabled; }
             if (_lastMonsterTrackerEnabled != ConfigManager.MonsterTrackerEnabled) { _lastMonsterTrackerEnabled = ConfigManager.MonsterTrackerEnabled; }
-            if (Mathf.Abs(_lastFarClip - ConfigManager.FarClipPlane) > 0.001f) { _lastFarClip = ConfigManager.FarClipPlane; settingsChanged = true; }
 
             if (settingsChanged)
             {
@@ -120,7 +117,9 @@ namespace EyesSpeedrunToolkit
             {
                 string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
                 bool isGameScene = currentScene == "School" || currentScene == "Hospital" || currentScene == "Mansion";
-                if (isGameScene)
+                bool isWinScene = currentScene == "PostGameAd" || currentScene == "Win" || currentScene == "Outro";
+
+                if (isGameScene || isWinScene)
                 {
                     string timeText = "00:00";
                     if (SpeedrunTimer.IsRunning())
@@ -132,7 +131,7 @@ namespace EyesSpeedrunToolkit
                         timeText = SpeedrunTimer.GetCurrentTimeFormatted() + " (FINISHED)";
                     }
 
-                    Rect timerRect = new Rect(ConfigManager.TimerX, ConfigManager.TimerY, 200f, 30f);
+                    Rect timerRect = new Rect(ConfigManager.TimerX, ConfigManager.TimerY, 200f, 40f); // Увеличили высоту до 40
 
                     // Перетаскивание таймера
                     if (Event.current.type == EventType.MouseDown && timerRect.Contains(Event.current.mousePosition))
@@ -222,6 +221,13 @@ namespace EyesSpeedrunToolkit
 
                 GUI.Label(new Rect(x, y, width, height), PlayerModifiers.StaminaTimerText);
             }
+            // === ВОТЕРМАРК CHEATS ACTIVE ===
+            if (IsAnyCheatEnabled())
+            {
+                GUI.color = new Color(1f, 0.3f, 0.3f, 0.8f); // Красный полупрозрачный
+                GUI.Label(new Rect(10f, Screen.height - 30f, 200f, 20f), "⚠️ CHEATS ACTIVE (Practice Run)");
+                GUI.color = Color.white;
+            }
             // ==========================================
         }
 
@@ -287,6 +293,20 @@ namespace EyesSpeedrunToolkit
             bool newTimerEnabled = GUILayout.Toggle(ConfigManager.TimerEnabled, "Show Speedrun Timer");
             if (newTimerEnabled != ConfigManager.TimerEnabled) { ConfigManager.TimerEnabled = newTimerEnabled; }
 
+            // === НОВОЕ: Тоггл миллисекунд ===
+            if (ConfigManager.TimerEnabled)
+            {
+                GUILayout.Space(5);
+                bool newShowMs = GUILayout.Toggle(ConfigManager.ShowMilliseconds, "Show Milliseconds");
+                if (newShowMs != ConfigManager.ShowMilliseconds)
+                {
+                    ConfigManager.ShowMilliseconds = newShowMs;
+                    ConfigManager.Save();
+                }
+                GUILayout.Label("(Format: MM:SS.mmm)", GUILayout.Height(20));
+            }
+            // ================================
+
             GUILayout.Space(10);
             GUILayout.Label("FOV: " + ConfigManager.TargetFOV.ToString("F0"));
             float newFov = GUILayout.HorizontalSlider(ConfigManager.TargetFOV, 60f, 140f);
@@ -307,6 +327,17 @@ namespace EyesSpeedrunToolkit
                 ConfigManager.Save();
             }
             GUILayout.Label("(Shows time until stamina is full)", GUILayout.Height(20));
+
+            GUILayout.Space(10);
+            bool newHideHUD = GUILayout.Toggle(ConfigManager.HideHUDEnabled, "Hide Game HUD");
+            if (newHideHUD != ConfigManager.HideHUDEnabled)
+            {
+                ConfigManager.HideHUDEnabled = newHideHUD;
+                ConfigManager.Save();
+                if (ConfigManager.HideHUDEnabled) HUDToggle.Enable();
+                else HUDToggle.Disable();
+            }
+            GUILayout.Label("(Removes eye icon, bag counter, and other UI elements)", GUILayout.Height(20));
         }
 
         private static void DrawPracticeTab()
@@ -387,6 +418,17 @@ namespace EyesSpeedrunToolkit
                 else MonsterTracker.DisableESP();
             }
 
+            GUILayout.Space(5);
+            GUILayout.Label("(Monster visible through walls)", GUILayout.Height(20));
+
+            bool new2DBox = GUILayout.Toggle(ConfigManager.ESP2DBoxEnabled, "2D ESP Box (Fallback)");
+            if (new2DBox != ConfigManager.ESP2DBoxEnabled)
+            {
+                ConfigManager.ESP2DBoxEnabled = new2DBox;
+                ConfigManager.Save();
+            }
+
+
             GUILayout.Space(10);
 
             bool newDisableFalloff = GUILayout.Toggle(ConfigManager.DisableFalloffShader, "Disable Distance Fog (Falloff Shader)");
@@ -400,6 +442,16 @@ namespace EyesSpeedrunToolkit
             GUILayout.Label("(Replaces fog shader with standard texture)", GUILayout.Height(20));
 
             GUILayout.Space(10);
+            bool newDisableFade = GUILayout.Toggle(ConfigManager.DisableFadeEnabled, "Disable Spawn Fade (Blackout)");
+            if (newDisableFade != ConfigManager.DisableFadeEnabled)
+            {
+                ConfigManager.DisableFadeEnabled = newDisableFade;
+                ConfigManager.Save();
+                FadeModule.Reset(); // Сбросить поиск, чтобы применить сразу
+            }
+            GUILayout.Label("(Removes black screen when spawning/dying)", GUILayout.Height(20));
+
+            GUILayout.Space(10);
             GUILayout.Label($"Render Distance: {ConfigManager.RenderDistance:F0}m", GUILayout.Height(20));
             float newRenderDist = GUILayout.HorizontalSlider(ConfigManager.RenderDistance, 11f, 1000f);
             if (Mathf.Abs(newRenderDist - ConfigManager.RenderDistance) > 0.1f)
@@ -410,26 +462,6 @@ namespace EyesSpeedrunToolkit
             }
             GUILayout.Label("(11m = original, 1000m = maximum)", GUILayout.Height(20));
             GUILayout.Space(5);
-            GUILayout.Label("(Monster visible through walls)", GUILayout.Height(20));
-
-            bool new2DBox = GUILayout.Toggle(ConfigManager.ESP2DBoxEnabled, "2D ESP Box (Fallback)");
-            if (new2DBox != ConfigManager.ESP2DBoxEnabled)
-            {
-                ConfigManager.ESP2DBoxEnabled = new2DBox;
-                ConfigManager.Save();
-            }
-
-            GUILayout.Space(5);
-
-            float farClipMeters = 11f + (ConfigManager.FarClipPlane - 0.01f) / (1.00f - 0.01f) * (1000f - 11f);
-            GUILayout.Label($"Far Clip Plane: {farClipMeters:F1}m (value: {ConfigManager.FarClipPlane:F2})", GUILayout.Height(20));
-            float newFarClip = GUILayout.HorizontalSlider(ConfigManager.FarClipPlane, 0.01f, 1.00f);
-            if (Mathf.Abs(newFarClip - ConfigManager.FarClipPlane) > 0.001f)
-            {
-                ConfigManager.FarClipPlane = newFarClip;
-            }
-            GUILayout.Space(5);
-            GUILayout.Label("(0.01 = 11m original, 1.00 = 1000m max)", GUILayout.Height(20));
 
             GUILayout.Space(20);
             GUILayout.Label("--- Monster Tracker Details ---", GUILayout.Height(20));
@@ -553,6 +585,15 @@ namespace EyesSpeedrunToolkit
             GUI.Label(new Rect(espRect.x + 5f, textY + 20f, boxWidth - 10f, 20f), $"Direction: {relativeDirection}");
 
             GUI.color = originalColor;
+        }
+        private static bool IsAnyCheatEnabled()
+        {
+            // Проверяем все функции из вкладок Cheats и Practice
+            return ConfigManager.ESPEnabled ||
+                   ConfigManager.FreecamEnabled ||
+                   ConfigManager.InfiniteStaminaEnabled ||
+                   ConfigManager.BagsWallHackEnabled ||
+                   ConfigManager.DisableFalloffShader;
         }
     }
 }
