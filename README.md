@@ -207,7 +207,6 @@ The default configuration is as follows:
 | `MonsterTrackerEnabled` | `false` | Displays monster distance overlay, and where he is |
 | `Infinite Stamina` | `false` | Infinite stamina! |
 | `Stamina Regen Timer` | `false` | Displays regeneration of the stamina, and after how long will the bar be 100% |
-| `FarClipPlane` | `0.01` | Normalized value (`0.01` = 11m, `1.00` = 1000m) |
 | `HarmonyClickBlock` | `Left Click Mouse` | Doesn't click on the game when you're in pause |
 | `Bags Wallhack` | `false` | Shows bags 2D ESP |
 | `2DBox` | `false` | Displays ESP of Monster. Shows where is he (Same with 3D WallHack |
