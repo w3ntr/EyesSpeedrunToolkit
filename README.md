@@ -10,6 +10,7 @@ The toolkit is intentionally divided into two functional domains: Quality of Lif
 ## Table of Contents
 
 - [Architecture](#architecture)
+- [Changelog](#changelog)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Implemented Features](#implemented-features)
@@ -95,6 +96,48 @@ Application.targetFrameRate
 
 [↑ Back to top](#table-of-contents)
 
+## Changelog
+
+This project adheres to [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [2.0.0] - 2026-10-30
+
+### Added
+- **UITheme System (`UITheme.cs`)** — Centralized theming layer for the entire IMGUI interface. Provides a unified palette (background, accent, text, hover states), cached textures and styles to eliminate per-frame `Texture2D`/`GUIStyle` allocations, automatic contrast-aware text color on accent plates, and drawing helpers (`Solid`, `Line`, `HexToColor`/`ColorToHex`). All HUD elements and the settings window now render through this system.
+- **Custom Window Title Bar** — The settings window no longer uses the built-in Unity IMGUI titlebar. A custom 28px header strip is drawn instead: mod name in accent color, highlighted background with a bottom separator line and a `[ drag here ]` hint, plus a manually rendered `X` close button with hover feedback. The title turns white while dragging.
+- **Manual Window Dragging** — Window movement is now implemented by hand (MouseDown detection inside the title strip + `Input.mousePosition` tracking in `Draw()`), instead of relying on `GUI.DragWindow`. This makes dragging reliable regardless of GUILayout content overlapping the drag zone. The window can no longer be dragged fully off-screen — the title bar always stays reachable. Position persists to config on release.
+- **Styled Section Headers** — Menu sections (Visuals, Quality of Life, FOV, Display, Monster Tracker, etc.) now use `SectionHeader()`: a 3px accent vertical bar aligned with the text, extra breathing room above and below (Space 10 / 22px row / Space 14), so labels are no longer clipped.
+- **Flat Tab Navigation** — Replaced the gray `SelectionGrid` with flat tab buttons; the active tab is highlighted with the accent color, inactive tabs get a subtle hover state.
+- **Accent-Highlighted Checkboxes** — Toggles in all tabs tint with the accent color when enabled, making active settings instantly scannable.
+- **Redesigned Speedrun Timer Plate** — Semi-transparent dark plate with an accent stripe on the left, large bold monospace digits (OS-font fallback via `Font.CreateDynamicFontFromOSFont`), green digits on `FINISHED`, and frame highlight while being dragged.
+- **Redesigned Cheats Watermark Panel** — Dark red plate with a red accent stripe replacing bare text. Height is computed from the actual rendered text (`CalcSize().y`) instead of a hardcoded value, and the panel sits higher from the screen edge, so multi-line lists of active cheats are never vertically clipped. Auto-expansion when new cheats are toggled is preserved.
+- **Stamina Timer Plate** — Compact plate sized to the text width with a top accent line.
+- **Monster Tracker Card** — Dark card with an accent stripe in a compact `DIST | DIR` format.
+
+### Changed
+- **Overall Visual Style** — Complete redesign of the HUD and menu away from default gray IMGUI visuals toward a flat, modern dark theme (dark panels, accent highlights, consistent spacing).
+- **2D ESP Box** — Now a semi-transparent red square with a crisp border instead of a solid filled rectangle.
+- **All displayed text is pure ASCII** — Special characters and emoji (`⚠`, `↺`, `✕`, `·`, `◢`) were replaced with ASCII analogs (`[!]`, `Reset to Defaults`, `X`, `|`, `//`), fixing black-square glyphs in the game's font (Aileron lacks these codepoints).
+- **Settings window content layout** — Tabs and content are wrapped in a `GUILayout.BeginArea` that starts strictly below the title strip, so nothing overlaps the drag zone anymore.
+
+### Removed
+- **Cheat Hotkeys** — All keyboard bindings for activating cheats (Space/RightArrow "activate all", and per-cheat keys) were removed. Cheats are now toggled exclusively through the GUI; the watermark reacts to the state of any active cheat (ESP, Bags Wallhack, Infinite Stamina, Freecam, No Fog, etc.).
+- **Built-in IMGUI Titlebar & Resize Handle Glyph** — Replaced by the custom title strip and a clean ASCII resize grip.
+
+### Fixed
+- **`Font.GetDefault()` Compilation Error** — The method does not exist in the target Unity version. Replaced with a safe monospace OS-font helper that falls back gracefully when no font is available.
+- **Black Squares Before Section Titles** — Caused by `GUILayout.Box("")` rendering a placeholder texture when drawing accent stripes. Section headers now use `UITheme.Solid()` directly.
+- **Watermark Text Clipping** — The bottom half of the second line ("list of active cheats") was cut off due to a hardcoded panel height; height is now dynamic.
+- **Window Not Draggable** — `GUI.DragWindow` zones were intercepted by GUILayout content and background boxes consuming MouseDown events. Resolved by manual drag logic and `GUI.DrawTexture` for non-interactive backgrounds.
+- **Style Allocation Leaks** — Title/hint/close-button styles are cached in static fields instead of being constructed every frame.
+
+### Technical Notes
+- Drag detection works in window-local coordinates: `EventType.MouseDown` inside the callback checks the 28px header strip (excluding the close button), stores the cursor offset, then `Draw()` moves `WindowRect` from `Input.mousePosition` each frame until `MouseUp`. This path is independent of the Harmony `BlockClickPatch`, which only affects the uGUI `GraphicRaycaster` and cannot interfere with IMGUI.
+- `UITheme` caches all generated textures once and rebuilds them only on palette changes (`ForceRebuild()`), keeping OnGUI overhead constant.
+- `EyesSpeedrunToolkit.csproj` updated with `<Compile Include="UITheme.cs" />` (the project uses explicit compile items).
+
+[↑ Back to top](#table-of-contents)
+
 ## Installation
 
 The modification requires a working MelonLoader installation. MelonLoader must be installed into the root directory of Eyes: The Horror Game prior to using this toolkit. Once MelonLoader is operational, place the compiled `EyesSpeedrunToolkit.dll` file into the `Mods` subdirectory. On the first launch, the mod will create its configuration entries in the Unity PlayerPrefs registry under the `EST_` prefix. No additional configuration files are required.
@@ -134,7 +177,7 @@ A system for logging and visualizing monster pathing decisions, state transition
 
 ### Seed Generator
 
-The idea for a seed generator was borrowed from community member T300850. While it could technically be added (especially given the existence of the Custom Spawns category), the author refuses to implement it on principle. The vanilla RNG is entirely non-deterministic, and there is no practical sense in creating such a tool. 
+The idea for a seed generator was borrowed from community member T300850. While it could technically be added (especially given the existence of the Custom Spawns category), the author refuses to implement it on principle. The vanilla RNG is entirely non-deterministic, and there is no practical sense in creating such a tool.
 
 Furthermore, the Eyes speedrunning community and Speedrun.com moderation explicitly prohibit tools that automate or guarantee specific random outcomes. Providing a seed generator would violate the foundational rules of the leaderboard and compromise the integrity of submitted runs.
 
@@ -188,7 +231,7 @@ This project wouldn't be possible without the help and feedback from the communi
 * **T300830** — Creator of the original Assembly-CSharp modification for Eyes. His work inspired some features of this toolkit, and his feedback on MelonLoader compatibility helped shape the project's direction.
 * **Speedrun.com Eyes Community** — For providing feedback, feature requests, and testing early versions of the mod.
 
-If you find any bugs or have suggestions, feel free to open an issue on GitHub! 
+If you find any bugs or have suggestions, feel free to open an issue on GitHub!
 _You can also reach out to me via private message — whichever way is most convenient for you:_
 * Discord: w3ntr
 * Telegram: @w3ntr

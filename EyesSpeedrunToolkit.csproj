@@ -111,9 +111,9 @@
   <ItemGroup>
     <Compile Include="BagsWallHack.cs" />
     <Compile Include="BlockClickPatch.cs" />
-    <Compile Include="DiscordRPCModule.cs" />
-    <Compile Include="DiscordRPC.cs" />
     <Compile Include="JumpModule.cs" />
+    <Compile Include="DiscordRPC.cs" />
+    <Compile Include="DiscordRPCModule.cs" />
     <Compile Include="WinTriggerPatch.cs" />
     <Compile Include="FadeModule.cs" />
     <Compile Include="HUDToggle.cs" />
@@ -123,6 +123,7 @@
     <Compile Include="SpeedrunTimer.cs" />
     <Compile Include="ConfigManager.cs" />
     <Compile Include="GraphicsModule.cs" />
+    <Compile Include="UITheme.cs" />
     <Compile Include="MonsterTracker.cs" />
     <Compile Include="HUDManager.cs" />
     <Compile Include="Main.cs" />

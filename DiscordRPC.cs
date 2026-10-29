@@ -21,7 +21,7 @@ namespace EyesSpeedrunToolkit
     public class DiscordRpc : IDisposable
     {
         // ⚠️ ВАЖНО: Замени этот ID на ID своего приложения в Discord Developer Portal, если создавал новое!
-        public const string APP_ID = "1544392370047688716";
+        public const string APP_ID = "1565406023768875048";
 
         private NamedPipeClientStream _pipe;
         private Thread _reader;

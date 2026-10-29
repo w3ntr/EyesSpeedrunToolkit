@@ -38,6 +38,7 @@ namespace EyesSpeedrunToolkit
         {
             SpeedrunTimer.Update();
             HUDToggle.Update();
+            DiscordRPCModule.Update();
             GraphicsModule.Update();
             FadeModule.Update();
             JumpModule.Update();
