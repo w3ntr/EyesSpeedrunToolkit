@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using MelonLoader;
 
 namespace EyesSpeedrunToolkit
@@ -221,11 +221,16 @@ namespace EyesSpeedrunToolkit
 
                 GUI.Label(new Rect(x, y, width, height), PlayerModifiers.StaminaTimerText);
             }
-            // === ВОТЕРМАРК CHEATS ACTIVE ===
+            // === ВОТЕРМАРК CHEATS ACTIVE (реагирует на состояние любого чита из Cheats/Practice) ===
             if (IsAnyCheatEnabled())
             {
                 GUI.color = new Color(1f, 0.3f, 0.3f, 0.8f); // Красный полупрозрачный
-                GUI.Label(new Rect(10f, Screen.height - 30f, 200f, 20f), "⚠️ CHEATS ACTIVE (Practice Run)");
+                string activeList = GetActiveCheatsList();
+                GUI.Label(new Rect(10f, Screen.height - 50f, 600f, 20f), "⚠️ CHEATS ACTIVE (Practice Run)");
+                if (!string.IsNullOrEmpty(activeList))
+                {
+                    GUI.Label(new Rect(10f, Screen.height - 30f, 700f, 20f), $"[{activeList}]");
+                }
                 GUI.color = Color.white;
             }
             // ==========================================
@@ -388,7 +393,6 @@ namespace EyesSpeedrunToolkit
             }
             GUILayout.Label("(WASD to fly, Mouse to look, Shift for speed boost)", GUILayout.Height(20));
 
-            GUILayout.Space(10);
             bool newJump = GUILayout.Toggle(ConfigManager.JumpEnabled, "Enable Jump (Space)");
             if (newJump != ConfigManager.JumpEnabled)
             {
@@ -609,6 +613,21 @@ namespace EyesSpeedrunToolkit
                    ConfigManager.InfiniteStaminaEnabled ||
                    ConfigManager.BagsWallHackEnabled ||
                    ConfigManager.DisableFalloffShader;
+        }
+
+        // Человекочитаемый список активных читов для ватермарки
+        private static string GetActiveCheatsList()
+        {
+            var list = new System.Collections.Generic.List<string>();
+            if (ConfigManager.ESPEnabled)              list.Add("3D ESP");
+            if (ConfigManager.ESP2DBoxEnabled)         list.Add("2D ESP Box");
+            if (ConfigManager.BagsWallHackEnabled)     list.Add("Bags Wallhack");
+            if (ConfigManager.InfiniteStaminaEnabled)  list.Add("Inf. Stamina");
+            if (ConfigManager.FreecamEnabled)          list.Add("Freecam");
+            if (ConfigManager.MonsterTrackerEnabled)   list.Add("Monster Tracker");
+            if (ConfigManager.DisableFalloffShader)    list.Add("No Fog");
+            if (ConfigManager.DisableFadeEnabled)      list.Add("No Fade");
+            return string.Join(", ", list);
         }
     }
 }
