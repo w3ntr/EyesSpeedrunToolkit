@@ -388,6 +388,21 @@ namespace EyesSpeedrunToolkit
             }
             GUILayout.Label("(WASD to fly, Mouse to look, Shift for speed boost)", GUILayout.Height(20));
 
+            GUILayout.Space(10);
+            bool newJump = GUILayout.Toggle(ConfigManager.JumpEnabled, "Enable Jump (Space)");
+            if (newJump != ConfigManager.JumpEnabled)
+            {
+                ConfigManager.JumpEnabled = newJump;
+                ConfigManager.Save();
+
+                // Синхронизируем с модулем!
+                if (newJump)
+                    JumpModule.Enable();
+                else
+                    JumpModule.Disable();
+            }
+            GUILayout.Label("(Press Space to jump when on ground)", GUILayout.Height(20));
+
             GUILayout.EndScrollView();
 
             GUILayout.Space(10);

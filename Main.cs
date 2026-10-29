@@ -24,9 +24,11 @@ namespace EyesSpeedrunToolkit
             HUDToggle.Initialize();
             GraphicsModule.Initialize();
             FadeModule.Initialize();
+            JumpModule.Initialize();
             MonsterTracker.Initialize();
             PlayerModifiers.Initialize();
             FreecamModule.Initialize();
+            DiscordRPCModule.Initialize();
             HUDManager.Initialize(); // <-- Это критически важно для сохранения биндов!
 
             MelonLogger.Msg("All modules initialized successfully!");
@@ -38,6 +40,7 @@ namespace EyesSpeedrunToolkit
             HUDToggle.Update();
             GraphicsModule.Update();
             FadeModule.Update();
+            JumpModule.Update();
             MonsterTracker.Update();
             PlayerModifiers.Update();
             FreecamModule.Update();
@@ -86,6 +89,10 @@ namespace EyesSpeedrunToolkit
         public override void OnGUI()
         {
             HUDManager.OnGUI();
+        }
+        public override void OnApplicationQuit()
+        {
+            DiscordRPCModule.Dispose();
         }
     }
 }
