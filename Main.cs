@@ -1,6 +1,6 @@
 ﻿using MelonLoader;
 
-[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.6.0", "w3ntr")]
+[assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "2.1.0", "w3ntr")]
 [assembly: MelonGame("", "Eyes")]
 
 namespace EyesSpeedrunToolkit
@@ -9,7 +9,7 @@ namespace EyesSpeedrunToolkit
     {
         public override void OnInitializeMelon()
         {
-            MelonLogger.Msg("=== Eyes Speedrun Toolkit v1.6.0 Loaded ===");
+            MelonLogger.Msg("=== Eyes Speedrun Toolkit v2.1.0 Loaded ===");
 
             // 1. Инициализация Harmony (без этого патчи не работают)
             var harmony = new HarmonyLib.Harmony("com.w3ntr.eyesspeedruntoolkit");
