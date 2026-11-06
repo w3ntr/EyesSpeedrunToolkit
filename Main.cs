@@ -1,8 +1,4 @@
 ﻿using MelonLoader;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using HarmonyLib;
-using System.Reflection;
 
 [assembly: MelonInfo(typeof(EyesSpeedrunToolkit.Main), "EyesSpeedrunToolkit", "1.6.0", "w3ntr")]
 [assembly: MelonGame("", "Eyes")]
@@ -29,6 +25,7 @@ namespace EyesSpeedrunToolkit
             PlayerModifiers.Initialize();
             FreecamModule.Initialize();
             DiscordRPCModule.Initialize();
+            TriggerESPModule.Initialize();
             HUDManager.Initialize(); // <-- Это критически важно для сохранения биндов!
 
             MelonLogger.Msg("All modules initialized successfully!");
@@ -64,6 +61,7 @@ namespace EyesSpeedrunToolkit
                 FreecamModule.Reset();
                 FadeModule.Reset();
                 MelonLogger.Msg("SpeedrunTimer: Auto-started in game scene");
+                TriggerESPModule.OnSceneLoaded();
             }
             else
             {
@@ -90,6 +88,7 @@ namespace EyesSpeedrunToolkit
         public override void OnGUI()
         {
             HUDManager.OnGUI();
+            TriggerESPModule.OnGUI();
         }
         public override void OnApplicationQuit()
         {

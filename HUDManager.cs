@@ -1,5 +1,5 @@
-using UnityEngine;
 using MelonLoader;
+using UnityEngine;
 
 namespace EyesSpeedrunToolkit
 {
@@ -223,6 +223,11 @@ namespace EyesSpeedrunToolkit
                         }
                     }
                 }
+            }
+
+            if (ConfigManager.TriggerESPEnabled)
+            {
+                TriggerESPModule.OnGUI();
             }
 
             // BAGS WALLHACK INDICATORS (отдельно, не внутри ESP2DBox)
@@ -566,6 +571,27 @@ namespace EyesSpeedrunToolkit
             }
 
             GUILayout.Space(8);
+            bool newTriggerESP = GUILayout.Toggle(ConfigManager.TriggerESPEnabled, "  Trigger ESP (Event Zones)", UITheme.ToggleFor(ConfigManager.TriggerESPEnabled));
+            if (newTriggerESP != ConfigManager.TriggerESPEnabled)
+            {
+                ConfigManager.TriggerESPEnabled = newTriggerESP;
+                ConfigManager.Save();
+
+                // Включаем/выключаем модуль и сканируем сцену
+                if (ConfigManager.TriggerESPEnabled)
+                {
+                    TriggerESPModule.IsEnabled = true;
+                    TriggerESPModule.FindTriggers();
+                }
+                else
+                {
+                    TriggerESPModule.IsEnabled = false;
+                    TriggerESPModule.ClearOverlays(); // Убедись, что этот метод public в модуле
+                }
+            }
+            GUILayout.Label("(Highlights large trigger zones, e.g., monster spawn areas)", UITheme.HintStyle);
+
+            GUILayout.Space(8);
             bool newDisableFalloff = GUILayout.Toggle(ConfigManager.DisableFalloffShader, "  Disable Distance Fog (Falloff Shader)", UITheme.ToggleFor(ConfigManager.DisableFalloffShader));
             if (newDisableFalloff != ConfigManager.DisableFalloffShader)
             {
@@ -731,7 +757,8 @@ namespace EyesSpeedrunToolkit
                    ConfigManager.FreecamEnabled ||
                    ConfigManager.InfiniteStaminaEnabled ||
                    ConfigManager.BagsWallHackEnabled ||
-                   ConfigManager.DisableFalloffShader;
+                   ConfigManager.DisableFalloffShader ||
+                   ConfigManager.TriggerESPEnabled;
         }
 
         // Человекочитаемый список активных читов для ватермарки
@@ -746,6 +773,7 @@ namespace EyesSpeedrunToolkit
             if (ConfigManager.MonsterTrackerEnabled)   list.Add("Monster Tracker");
             if (ConfigManager.DisableFalloffShader)    list.Add("No Fog");
             if (ConfigManager.DisableFadeEnabled)      list.Add("No Fade");
+            if (ConfigManager.TriggerESPEnabled) list.Add("Trigger ESP");
             return string.Join(", ", list);
         }
     }

@@ -26,6 +26,7 @@ namespace EyesSpeedrunToolkit
         public static bool DisableFadeEnabled = false;
         public static bool FreecamEnabled = false;
         public static bool JumpEnabled = false;
+        public static bool TriggerESPEnabled = false;
         public static float JumpForce = 6f;
 
         // Practice
@@ -61,6 +62,7 @@ namespace EyesSpeedrunToolkit
                 StaminaTimerEnabled = PlayerPrefs.GetInt(PREFIX + "StaminaTimer", 0) == 1;
                 JumpEnabled = PlayerPrefs.GetInt(PREFIX + "Jump", 0) == 1;
                 JumpForce = PlayerPrefs.GetFloat(PREFIX + "JumpForce", 6f);
+                TriggerESPEnabled = PlayerPrefs.GetInt("TriggerESPEnabled", 0) == 1;
                 MonsterTrackerEnabled = PlayerPrefs.GetInt(PREFIX + "MonsterTracker", 0) == 1;
                 ESPEnabled = PlayerPrefs.GetInt(PREFIX + "ESP", 0) == 1;
                 ESP2DBoxEnabled = PlayerPrefs.GetInt(PREFIX + "ESP2DBox", 0) == 1;
@@ -96,6 +98,7 @@ namespace EyesSpeedrunToolkit
                 PlayerPrefs.SetInt(PREFIX + "StaminaTimer", StaminaTimerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "Jump", JumpEnabled ? 1 : 0);
                 PlayerPrefs.SetFloat(PREFIX + "JumpForce", JumpForce);
+                PlayerPrefs.SetInt("TriggerESPEnabled", TriggerESPEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "MonsterTracker", MonsterTrackerEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP", ESPEnabled ? 1 : 0);
                 PlayerPrefs.SetInt(PREFIX + "ESP2DBox", ESP2DBoxEnabled ? 1 : 0);
@@ -126,6 +129,7 @@ namespace EyesSpeedrunToolkit
             DisableFadeEnabled = false;
             JumpEnabled = false;
             JumpForce = 6f;
+            TriggerESPEnabled = false;
             MonsterTrackerEnabled = false;
             ESPEnabled = false;
             ESP2DBoxEnabled = false;
