@@ -167,28 +167,6 @@ The following features modify gameplay perception and are restricted to offline 
 
 * **Monster Tracker:** Locates the active monster entity in the scene by searching for `GameObjects` with the `Enemy_` prefix (such as `Enemy_Krasue`, `Enemy_Charlie`, `Enemy_Dog`, `Enemy_Witch`). Once located, it continuously computes the Euclidean distance between the monster's transform and the player's position. The distance is displayed in the lower-right corner of the screen during gameplay and in the Cheats tab of the menu. The display turns red when the monster is within 15 meters. The tracker also maintains a rolling history of the last 100 recorded positions.
 
-## Planned but Not Implemented
-
-Two features were considered during development but were ultimately excluded from the current release.
-
-### Monster Behavior Analysis
-
-A system for logging and visualizing monster pathing decisions, state transitions, and vision cone activity was considered. However, predicting monster behavior is fundamentally impossible due to non-deterministic randomness. There is no hard-coded control or predictable logic to map out, making such a tool practically useless.
-
-### Seed Generator
-
-The idea for a seed generator was borrowed from community member T300850. While it could technically be added (especially given the existence of the Custom Spawns category), the author refuses to implement it on principle. The vanilla RNG is entirely non-deterministic, and there is no practical sense in creating such a tool.
-
-Furthermore, the Eyes speedrunning community and Speedrun.com moderation explicitly prohibit tools that automate or guarantee specific random outcomes. Providing a seed generator would violate the foundational rules of the leaderboard and compromise the integrity of submitted runs.
-
-Seed evaluation and the decision to reroll constitute a core skill of the speedrun. The ability to recognize a favorable layout and commit to it, or to abandon an unfavorable one, is an integral part of run execution. Automating this decision removes the human element of risk assessment and route adaptation, which are essential components of a legitimate run.
-
-From a technical perspective, implementing a reliable seed generator for a Unity 2021 game requires reverse-engineering the internal state of the game's pseudo-random number generator. Unity's RNG is typically coupled to internal frame counts, memory addresses, and physics simulation steps. A generator that reads or writes this state would be highly fragile and likely to break with every game update, creating an unsustainable maintenance cycle.
-
-This toolkit therefore focuses exclusively on execution quality, routing practice, and visual adjustments, leaving all random number generation entirely under the player's control.
-
-[↑ Back to top](#table-of-contents)
-
 ## Configuration
 
 All settings are persisted through Unity's `PlayerPrefs` system under keys prefixed with `EST_`. The configuration is saved automatically when the "Save Settings" button is pressed in the menu, when the timer position is changed via dragging, or when a practice feature is toggled. To perform a complete reset to default values, use the "Reset to Defaults" button in the Settings tab, or manually clear the `EST_*` keys from the Unity registry.
